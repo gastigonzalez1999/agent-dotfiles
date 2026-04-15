@@ -56,11 +56,29 @@ install_skill "analogjs/angular-skills" "skills/angular-ssr"
 install_skill "analogjs/angular-skills" "skills/angular-testing"
 install_skill "analogjs/angular-skills" "skills/angular-tooling"
 
+# --- Frontend quality ---
+echo ""
+echo "Frontend quality:"
+install_skill "anthropics/skills" "skills/frontend-design"
+install_skill "addyosmani/web-quality-skills" "skills/accessibility"
+install_skill "addyosmani/web-quality-skills" "skills/seo"
+install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-css-patterns"
+install_skill "vercel-labs/agent-skills" "skills/react-best-practices"
+install_skill "vercel-labs/agent-skills" "skills/composition-patterns"
+
+# --- Next.js ---
+echo ""
+echo "Next.js:"
+install_skill "vercel-labs/next-skills" "skills/next-best-practices"
+install_skill "vercel-labs/next-skills" "skills/next-cache-components"
+install_skill "vercel-labs/next-skills" "skills/next-upgrade"
+
 # --- Backend ---
 echo ""
 echo "Backend:"
-install_skill "mindrally/skills" "nestjs-clean-typescript"
-install_skill "mindrally/skills" "nodejs-development"
+install_skill "kadajett/agent-nestjs-skills" "nestjs-best-practices"
+install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-backend-patterns"
+install_skill "sickn33/antigravity-awesome-skills" "skills/typescript-advanced-types"
 install_skill "mindrally/skills" "typeorm"
 
 # --- Database ---
@@ -74,15 +92,11 @@ install_skill "prisma/skills" "prisma-postgres"
 install_skill "prisma/skills" "prisma-upgrade-v7"
 install_skill "hoodini/ai-agents-skills" "skills/mongodb"
 
-# --- Frontend quality ---
-echo ""
-echo "Frontend quality:"
-install_skill "anthropics/skills" "skills/frontend-design"
-
 # --- DevOps ---
 echo ""
 echo "DevOps:"
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert"
+install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices"
 
 echo ""
 echo "Done! Skills installed to $CODEX_SKILLS_DIR"

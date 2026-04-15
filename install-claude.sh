@@ -46,17 +46,13 @@ install_skill() {
     echo "  Installing $skill_name from $repo..."
     local tmp
     tmp=$(mktemp -d)
-    git clone --depth=1 --filter=blob:none --sparse "https://github.com/$repo" "$tmp" -q 2>/dev/null || { echo "  [fail] $skill_name — clone failed"; rm -rf "$tmp"; return; }
-    cd "$tmp"
-    git sparse-checkout set "$subfolder" 2>/dev/null
-    git read-tree -mu HEAD 2>/dev/null || true
-    if [ -d "$subfolder" ]; then
-        cp -r "$subfolder" "$target"
+    git clone --depth=1 "https://github.com/$repo" "$tmp" -q 2>/dev/null || { echo "  [fail] $skill_name — clone failed"; rm -rf "$tmp"; return; }
+    if [ -d "$tmp/$subfolder" ]; then
+        cp -r "$tmp/$subfolder" "$target"
         echo "  [ok] $skill_name"
     else
         echo "  [fail] $skill_name — subfolder '$subfolder' not found"
     fi
-    cd - > /dev/null
     rm -rf "$tmp"
 }
 
@@ -79,9 +75,23 @@ install_skill "analogjs/angular-skills" "skills/angular-ssr" "angular-ssr"
 install_skill "analogjs/angular-skills" "skills/angular-testing" "angular-testing"
 install_skill "analogjs/angular-skills" "skills/angular-tooling" "angular-tooling"
 
+# --- Frontend quality ---
+install_skill "anthropics/skills" "skills/frontend-design" "frontend-design"
+install_skill "addyosmani/web-quality-skills" "skills/accessibility" "accessibility"
+install_skill "addyosmani/web-quality-skills" "skills/seo" "seo"
+install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-css-patterns" "tailwind-css-patterns"
+install_skill "vercel-labs/agent-skills" "skills/react-best-practices" "vercel-react-best-practices"
+install_skill "vercel-labs/agent-skills" "skills/composition-patterns" "vercel-composition-patterns"
+
+# --- Next.js ---
+install_skill "vercel-labs/next-skills" "skills/next-best-practices" "next-best-practices"
+install_skill "vercel-labs/next-skills" "skills/next-cache-components" "next-cache-components"
+install_skill "vercel-labs/next-skills" "skills/next-upgrade" "next-upgrade"
+
 # --- Backend ---
-install_skill "mindrally/skills" "nestjs-clean-typescript" "nestjs-best-practices"
-install_skill "mindrally/skills" "nodejs-development" "nodejs-backend-patterns"
+install_skill "kadajett/agent-nestjs-skills" "nestjs-best-practices" "nestjs-best-practices"
+install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-backend-patterns" "nodejs-backend-patterns"
+install_skill "sickn33/antigravity-awesome-skills" "skills/typescript-advanced-types" "typescript-advanced-types"
 install_skill "mindrally/skills" "typeorm" "typeorm"
 
 # --- Database ---
@@ -93,11 +103,9 @@ install_skill "prisma/skills" "prisma-postgres" "prisma-postgres"
 install_skill "prisma/skills" "prisma-upgrade-v7" "prisma-upgrade-v7"
 install_skill "hoodini/ai-agents-skills" "skills/mongodb" "mongodb"
 
-# --- Frontend quality ---
-install_skill "anthropics/skills" "skills/frontend-design" "frontend-design"
-
 # --- DevOps ---
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docker-expert"
+install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices" "nodejs-best-practices"
 
 echo ""
 echo "Done! Skills installed to $SKILLS_DIR"
