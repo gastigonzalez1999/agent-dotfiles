@@ -107,6 +107,48 @@ install_skill "hoodini/ai-agents-skills" "skills/mongodb" "mongodb"
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docker-expert"
 install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices" "nodejs-best-practices"
 
+# --- Custom skills (from agent-dotfiles) ---
+echo ""
+echo "Installing custom skills..."
+CUSTOM_SKILLS_DIR="$SKILLS_DIR/.claude/skills"
+mkdir -p "$CUSTOM_SKILLS_DIR"
+
+copy_custom_skill() {
+    local name="$1"
+    if [ -d "$CUSTOM_SKILLS_DIR/$name" ]; then
+        echo "  [skip] $name already installed"
+        return
+    fi
+    if [ -d "$SCRIPT_DIR/skills/$name" ]; then
+        cp -r "$SCRIPT_DIR/skills/$name" "$CUSTOM_SKILLS_DIR/$name"
+        echo "  [ok] $name"
+    else
+        echo "  [missing] $name — not found in $SCRIPT_DIR/skills/"
+    fi
+}
+
+copy_custom_skill "scaffold-nestjs-module"
+copy_custom_skill "scaffold-next-page"
+copy_custom_skill "fix-ts-errors"
+copy_custom_skill "setup-prisma-migration"
+copy_custom_skill "debug-cors"
+copy_custom_skill "verify-stack"
+copy_custom_skill "new-fullstack-project"
+copy_custom_skill "build-backend-phases"
+copy_custom_skill "fix-and-verify"
+copy_custom_skill "stack-doctor"
+
+# ---------------------------------------------------------------------------
+# 4. Copy CLAUDE.md global rules
+# ---------------------------------------------------------------------------
+echo "Installing global CLAUDE.md..."
+if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
+    echo "  CLAUDE.md already exists — skipping. Merge manually from CLAUDE.md in repo if needed."
+else
+    cp "$SCRIPT_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
+    echo "  [ok] CLAUDE.md"
+fi
+
 echo ""
 echo "Done! Skills installed to $SKILLS_DIR"
 echo "Statusline script: $CLAUDE_DIR/statusline-command.sh"
