@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Claude Code dotfiles setup script
-# Usage: bash install.sh
+# Usage: bash install-claude.sh
 # Run this on any new machine to replicate your Claude Code setup.
-
-set -e
 
 CLAUDE_DIR="$HOME/.claude"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,10 +44,11 @@ install_skill() {
     fi
 
     echo "  Installing $skill_name from $repo..."
-    local tmp=$(mktemp -d)
-    git clone --depth=1 --filter=blob:none --sparse "https://github.com/$repo" "$tmp" -q
+    local tmp
+    tmp=$(mktemp -d)
+    git clone --depth=1 --filter=blob:none --sparse "https://github.com/$repo" "$tmp" -q 2>/dev/null || { echo "  [fail] $skill_name — clone failed"; rm -rf "$tmp"; return; }
     cd "$tmp"
-    git sparse-checkout set "$subfolder" -q
+    git sparse-checkout set "$subfolder" 2>/dev/null
     git read-tree -mu HEAD 2>/dev/null || true
     if [ -d "$subfolder" ]; then
         cp -r "$subfolder" "$target"
@@ -61,29 +60,14 @@ install_skill() {
     rm -rf "$tmp"
 }
 
-install_skill_full() {
-    local repo="$1"
-    local skill_name="$2"
-    local target="$SKILLS_DIR/${skill_name}"
-
-    if [ -d "$target" ]; then
-        echo "  [skip] $skill_name already installed"
-        return
-    fi
-
-    echo "  Installing $skill_name from $repo..."
-    git clone --depth=1 "https://github.com/$repo" "$target" -q
-    echo "  [ok] $skill_name"
-}
-
-# --- Core / meta skills ---
+# --- Core / meta ---
 install_skill "obra/superpowers" "skills/using-superpowers" "using-superpowers"
 install_skill "obra/superpowers" "skills/using-git-worktrees" "using-git-worktrees"
 install_skill "obra/superpowers" "skills/systematic-debugging" "systematic-debugging"
 install_skill "softaworks/agent-toolkit" "skills/session-handoff" "session-handoff"
 install_skill "vercel-labs/skills" "skills/find-skills" "find-skills"
 
-# --- Frontend / React / Angular ---
+# --- Frontend / Angular ---
 install_skill "analogjs/angular-skills" "skills/angular-component" "angular-component"
 install_skill "analogjs/angular-skills" "skills/angular-di" "angular-di"
 install_skill "analogjs/angular-skills" "skills/angular-directives" "angular-directives"
@@ -96,43 +80,24 @@ install_skill "analogjs/angular-skills" "skills/angular-testing" "angular-testin
 install_skill "analogjs/angular-skills" "skills/angular-tooling" "angular-tooling"
 
 # --- Backend ---
-install_skill "mindrally/skills" "skills/nestjs-best-practices" "nestjs-best-practices"
-install_skill "mindrally/skills" "skills/nodejs-backend-patterns" "nodejs-backend-patterns"
-install_skill "mindrally/skills" "skills/typeorm" "typeorm"
+install_skill "mindrally/skills" "nestjs-clean-typescript" "nestjs-best-practices"
+install_skill "mindrally/skills" "nodejs-development" "nodejs-backend-patterns"
+install_skill "mindrally/skills" "typeorm" "typeorm"
 
 # --- Database ---
-install_skill "prisma/skills" "skills/prisma-cli" "prisma-cli"
-install_skill "prisma/skills" "skills/prisma-client-api" "prisma-client-api"
-install_skill "prisma/skills" "skills/prisma-database-setup" "prisma-database-setup"
-install_skill "prisma/skills" "skills/prisma-driver-adapter-implementation" "prisma-driver-adapter-implementation"
-install_skill "prisma/skills" "skills/prisma-postgres" "prisma-postgres"
-install_skill "prisma/skills" "skills/prisma-upgrade-v7" "prisma-upgrade-v7"
+install_skill "prisma/skills" "prisma-cli" "prisma-cli"
+install_skill "prisma/skills" "prisma-client-api" "prisma-client-api"
+install_skill "prisma/skills" "prisma-database-setup" "prisma-database-setup"
+install_skill "prisma/skills" "prisma-driver-adapter-implementation" "prisma-driver-adapter-implementation"
+install_skill "prisma/skills" "prisma-postgres" "prisma-postgres"
+install_skill "prisma/skills" "prisma-upgrade-v7" "prisma-upgrade-v7"
 install_skill "hoodini/ai-agents-skills" "skills/mongodb" "mongodb"
-install_skill "supabase-community/supabase-skills" "skills/supabase-postgres-best-practices" "supabase-postgres-best-practices"
 
 # --- Frontend quality ---
-install_skill "vercel-labs/skills" "skills/vercel-react-best-practices" "vercel-react-best-practices"
 install_skill "anthropics/skills" "skills/frontend-design" "frontend-design"
-install_skill "anthropics/skills" "skills/web-design-guidelines" "web-design-guidelines"
 
 # --- DevOps ---
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docker-expert"
-install_skill "jeffallan/skills" "skills/kubernetes-specialist" "kubernetes-specialist"
-
-# --- Code quality / architecture ---
-install_skill "anthropics/skills" "skills/architecture-assistant" "architecture-assistant"
-install_skill "anthropics/skills" "skills/architecture-patterns" "architecture-patterns"
-install_skill "anthropics/skills" "skills/code-review-excellence" "code-review-excellence"
-install_skill "anthropics/skills" "skills/performance-analyzer" "performance-analyzer"
-install_skill "anthropics/skills" "skills/safe-refactor" "safe-refactor"
-install_skill "anthropics/skills" "skills/senior-reviewer" "senior-reviewer"
-install_skill "anthropics/skills" "skills/dependency-updater" "dependency-updater"
-install_skill "anthropics/skills" "skills/agent-md-refactor" "agent-md-refactor"
-install_skill "anthropics/skills" "skills/typescript-advanced-types" "typescript-advanced-types"
-install_skill "anthropics/skills" "skills/test" "test"
-
-# --- Productivity ---
-install_skill "ctsstc/get-shit-done-skills" "skills/gsd" "gsd"
 
 echo ""
 echo "Done! Skills installed to $SKILLS_DIR"
