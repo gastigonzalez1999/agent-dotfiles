@@ -6,12 +6,25 @@
 CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 INSTALLER="$HOME/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py"
 
+# Detect Python (handles python3 on Linux/Mac, python on Windows)
+if command -v python3 &>/dev/null; then
+    PYTHON="python3"
+elif command -v python &>/dev/null; then
+    PYTHON="python"
+elif command -v py &>/dev/null; then
+    PYTHON="py"
+else
+    echo "Error: Python not found. Install Python and try again."
+    exit 1
+fi
+
 if [ ! -f "$INSTALLER" ]; then
     echo "Error: Codex skill installer not found at $INSTALLER"
     echo "Make sure Codex is installed and has been run at least once."
     exit 1
 fi
 
+# Install a skill from a subfolder within a repo
 install_skill() {
     local repo="$1"
     local path="$2"
@@ -24,11 +37,33 @@ install_skill() {
     fi
 
     echo "  Installing $name from $repo..."
-    if python3 "$INSTALLER" --repo "$repo" --path "$path" 2>&1; then
+    if "$PYTHON" "$INSTALLER" --repo "$repo" --path "$path" 2>&1; then
         echo "  [ok] $name"
     else
         echo "  [fail] $name"
     fi
+}
+
+# Install a skill where the entire repo root is the skill (no subfolder)
+install_skill_repo_root() {
+    local repo="$1"
+    local skill_name="$2"
+    local target="$CODEX_SKILLS_DIR/$skill_name"
+
+    if [ -d "$target" ]; then
+        echo "  [skip] $skill_name already installed"
+        return
+    fi
+
+    echo "  Installing $skill_name from $repo (repo root)..."
+    local tmp; tmp=$(mktemp -d)
+    if git clone --depth=1 "https://github.com/$repo" "$tmp/$skill_name" -q 2>&1; then
+        cp -r "$tmp/$skill_name" "$target"
+        echo "  [ok] $skill_name"
+    else
+        echo "  [fail] $skill_name — clone failed"
+    fi
+    rm -rf "$tmp"
 }
 
 echo "Setting up Codex skills..."
@@ -76,7 +111,7 @@ install_skill "vercel-labs/next-skills" "skills/next-upgrade"
 # --- Backend ---
 echo ""
 echo "Backend:"
-install_skill "kadajett/agent-nestjs-skills" "nestjs-best-practices"
+install_skill_repo_root "kadajett/agent-nestjs-skills" "nestjs-best-practices"
 install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-backend-patterns"
 install_skill "sickn33/antigravity-awesome-skills" "skills/typescript-advanced-types"
 install_skill "mindrally/skills" "typeorm"
