@@ -4,6 +4,10 @@
 - **qa** (`skills/qa/SKILL.md`) - interactive QA session: user reports bugs, agent files GitHub issues. Trigger: `/qa` or when user mentions "QA session", "report a bug", or "file an issue".
 When the user triggers a QA session, invoke the Skill tool with `skill: "qa"` before doing anything else.
 
+# domain-model
+- **domain-model** (`skills/domain-model/SKILL.md`) - grilling session to stress-test plans against the domain model, sharpen terminology, and write CONTEXT.md / ADRs inline. Trigger: `/domain-model` or when user says "stress-test", "domain model session", "sharpen the language", or "let's do a domain session".
+When the user triggers a domain model session, invoke the Skill tool with `skill: "domain-model"` before doing anything else.
+
 ## Behavioral Rules
 
 - When the user corrects you, stop and re-read their message. Quote back what they asked for and confirm before proceeding.
