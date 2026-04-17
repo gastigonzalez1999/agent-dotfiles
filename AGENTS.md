@@ -1,5 +1,9 @@
 # Global Rules
 
+# qa
+- **qa** (`skills/qa/SKILL.md`) - interactive QA session: user reports bugs, agent files GitHub issues. Trigger: `/qa` or when user mentions "QA session", "report a bug", or "file an issue".
+When the user triggers a QA session, load and follow the qa skill before doing anything else.
+
 ## Behavioral Rules
 
 - When the user corrects you, stop and re-read their message. Quote back what they asked for and confirm before proceeding.
