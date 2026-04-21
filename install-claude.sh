@@ -107,36 +107,13 @@ install_skill "hoodini/ai-agents-skills" "skills/mongodb" "mongodb"
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docker-expert"
 install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices" "nodejs-best-practices"
 
-# --- Custom skills (from agent-dotfiles) ---
+# --- Custom skills (from agent-dotfiles; always match this repo) ---
 echo ""
 echo "Installing custom skills..."
 CUSTOM_SKILLS_DIR="$SKILLS_DIR/.claude/skills"
 mkdir -p "$CUSTOM_SKILLS_DIR"
-
-copy_custom_skill() {
-    local name="$1"
-    if [ -d "$CUSTOM_SKILLS_DIR/$name" ]; then
-        echo "  [skip] $name already installed"
-        return
-    fi
-    if [ -d "$SCRIPT_DIR/skills/$name" ]; then
-        cp -r "$SCRIPT_DIR/skills/$name" "$CUSTOM_SKILLS_DIR/$name"
-        echo "  [ok] $name"
-    else
-        echo "  [missing] $name — not found in $SCRIPT_DIR/skills/"
-    fi
-}
-
-copy_custom_skill "scaffold-nestjs-module"
-copy_custom_skill "scaffold-next-page"
-copy_custom_skill "fix-ts-errors"
-copy_custom_skill "setup-prisma-migration"
-copy_custom_skill "debug-cors"
-copy_custom_skill "verify-stack"
-copy_custom_skill "new-fullstack-project"
-copy_custom_skill "build-backend-phases"
-copy_custom_skill "fix-and-verify"
-copy_custom_skill "stack-doctor"
+rsync -a "$SCRIPT_DIR/skills/" "$CUSTOM_SKILLS_DIR/"
+echo "  [ok] synced $SCRIPT_DIR/skills/ -> $CUSTOM_SKILLS_DIR/"
 
 # ---------------------------------------------------------------------------
 # 4. Copy CLAUDE.md global rules

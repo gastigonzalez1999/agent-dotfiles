@@ -3,6 +3,7 @@
 # Usage: bash install-codex.sh
 # Run this on any new machine to replicate your Codex skills setup.
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 INSTALLER="$HOME/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py"
 
@@ -132,6 +133,17 @@ echo ""
 echo "DevOps:"
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert"
 install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices"
+
+# --- Custom skills (from agent-dotfiles; always refresh from this repo) ---
+echo ""
+echo "Custom skills (synced from $SCRIPT_DIR/skills):"
+mkdir -p "$CODEX_SKILLS_DIR"
+for src in "$SCRIPT_DIR/skills"/*/; do
+    [[ -d "$src" ]] || continue
+    name="$(basename "$src")"
+    rsync -a "$src" "$CODEX_SKILLS_DIR/$name/"
+    echo "  [ok] $name"
+done
 
 echo ""
 echo "Done! Skills installed to $CODEX_SKILLS_DIR"
