@@ -53,6 +53,14 @@ Both scripts install the same skill set:
 **Productivity**
 - `gsd` — ctsstc/get-shit-done-skills
 
+**Custom (synced from this repo)**
+- `qa`, `domain-model`, `handoff`, scaffolds, `stack-doctor`, `fix-and-verify`, …
+- `auto-improve`, `browser-use`, `thermo-nuclear-code-quality-review`
+
+**Mobile / native (GitHub)**
+- `vercel-react-native-skills` — vercel-labs/agent-skills
+- `core-bluetooth` — dpearson2699/swift-ios-skills
+
 ## Claude Code extras
 
 `install-claude.sh` also installs:

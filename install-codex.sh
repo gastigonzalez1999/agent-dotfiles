@@ -102,6 +102,12 @@ install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-css-patterns
 install_skill "vercel-labs/agent-skills" "skills/react-best-practices"
 install_skill "vercel-labs/agent-skills" "skills/composition-patterns"
 
+# --- Mobile / native ---
+echo ""
+echo "Mobile / native:"
+install_skill "vercel-labs/agent-skills" "skills/react-native-skills"
+install_skill "dpearson2699/swift-ios-skills" "skills/core-bluetooth"
+
 # --- Next.js ---
 echo ""
 echo "Next.js:"

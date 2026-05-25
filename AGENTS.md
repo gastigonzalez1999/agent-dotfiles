@@ -1,17 +1,42 @@
 # Global Rules
 
+See `CLAUDE.md` for full behavioral guidelines, tech stack, and skill triggers.
+
 # qa
-- **qa** (`skills/qa/SKILL.md`) - interactive QA session: user reports bugs, agent files GitHub issues. Trigger: `/qa` or when user mentions "QA session", "report a bug", or "file an issue".
-When the user triggers a QA session, load and follow the qa skill before doing anything else.
+
+- **qa** (`skills/qa/SKILL.md`) — interactive QA session. Trigger: `/qa` or "QA session", "report a bug", "file an issue".
+
+When triggered, load and follow the qa skill before doing anything else.
 
 # domain-model
-- **domain-model** (`skills/domain-model/SKILL.md`) - grilling session to stress-test plans against the domain model, sharpen terminology, and write CONTEXT.md / ADRs inline. Trigger: `/domain-model` or when user says "stress-test", "domain model session", "sharpen the language", or "let's do a domain session".
-When the user triggers a domain model session, load and follow the domain-model skill before doing anything else.
+
+- **domain-model** (`skills/domain-model/SKILL.md`) — stress-test plans against the domain model. Trigger: `/domain-model` or "domain model session", "stress-test".
+
+When triggered, load and follow the domain-model skill before doing anything else.
+
+# auto-improve
+
+- **auto-improve** (`skills/auto-improve/SKILL.md`) — package repeated workflows into skills/subagents. Trigger: `/auto-improve`.
+
+When triggered, load and follow the auto-improve skill.
+
+# browser-use
+
+- **browser-use** (`skills/browser-use/SKILL.md`) — Chrome DevTools MCP (existing profile). Trigger: live UI proof, login-heavy browser checks.
+
+When triggered, load and follow the browser-use skill.
+
+# thermo-nuclear-code-quality-review
+
+- **thermo-nuclear-code-quality-review** (`skills/thermo-nuclear-code-quality-review/SKILL.md`) — harsh maintainability audit. Trigger: `/thermo-nuclear-code-quality-review`.
+
+When triggered, gather diff + changed files, then apply the skill rubric.
 
 ## Behavioral Rules
 
-- When the user corrects you, stop and re-read their message. Quote back what they asked for and confirm before proceeding.
-- Re-read the user's last message before responding. Follow through on every instruction completely.
-- Double-check your output before presenting it. Verify that your changes actually address what the user asked for.
-- When stuck, summarize what you've tried and ask the user for guidance instead of retrying the same approach.
-- Every few turns, re-read the original request to make sure you haven't drifted from the goal.
+- Think before coding; state assumptions; ask when uncertain.
+- Minimum code that solves the problem; no speculative abstractions.
+- Surgical edits only; match existing style; remove orphans your changes created.
+- Define verifiable success criteria and check them before finishing.
+- When corrected, re-read the user's message and confirm before proceeding.
+- When stuck, summarize attempts and ask for guidance.
