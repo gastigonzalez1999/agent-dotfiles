@@ -63,7 +63,42 @@ One contract at the repo root. Scope checks with `cwd` rather than writing a con
 
 If a root-level `tsc --noEmit` picks up the wrong config, point the check at the app's tsconfig explicitly.
 
-## 6. Commit it
+## 6. Work repositories
+
+A repo shared with other people is not a different tool, just different defaults. Decide with three questions.
+
+**Is the repo shared?** At work, assume yes.
+→ `"retro": "off"`. Retro commits unattended, and a `chore(loop-retro):` commit turning up in someone's PR review is not yours to spring on them. Run `loop retro` by hand to see what it *would* say.
+
+**Is the repo green right now?** Run the gates before wiring anything up.
+→ Green: `"stopGate": "full"`.
+→ Red from pre-existing debt: `"stopGate": "test"`, or `null` until it is clean. A gate that blocks you on day one for failures you did not cause is a gate you will switch off by day two.
+
+**Is `full` slower than about two minutes?**
+→ Then `"stopGate": "test"` and let `full` be something you run deliberately.
+
+Reasonable starting point:
+
+```json
+"enforce": { "stopGate": "test", "postEditGate": false, "retro": "off" }
+```
+
+### Trialling without touching the shared repo
+
+`loop init` writes `.agent/loop.json` and appends to `.gitignore`. On a repo you do not own yet, keep it invisible instead:
+
+```bash
+echo ".agent/" >> .git/info/exclude   # per-clone, never committed
+git checkout -- .gitignore            # undo the init edit
+```
+
+Nobody sees anything. Propose committing the contract later, once it has earned its place — at that point it is a shared asset, and the team should have a say in what the gates are.
+
+### If someone asks what it does
+
+It runs commands the repo already declares and checks exit codes. It makes no network calls (the one `fetch` is `loop doctor` hitting health URLs your own contract declares), sends no telemetry, and the only git command it can run is `commit` — never `push`, and only with retro explicitly enabled.
+
+## 7. Commit it
 
 `.agent/loop.json` is committed — it is how the loop travels to other machines and other agents. Run artifacts (`.agent/.loop-*`) are gitignored automatically.
 
