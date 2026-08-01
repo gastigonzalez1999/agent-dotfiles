@@ -102,12 +102,24 @@ export function fingerprint(output) {
   return `raw:${normalize(firstError(output) ?? output.split('\n')[0] ?? '')}`;
 }
 
-/** The most useful single line to show a human or agent about why a check failed. */
+/**
+ * The most useful single line to show a human or agent about why a check failed.
+ *
+ * Scans from the end first: a stack trace's last line is the actual exception,
+ * while its first line is boilerplate. Compiler output rarely matches the
+ * exception pattern, so it falls through to the forward scan.
+ */
 export function firstError(output) {
   if (!output) return null;
-  const lines = output.split('\n');
-  const signal = lines.find((l) => /\b(error|failed|failure|✕|×|●)\b/i.test(l) && l.trim());
-  return (signal ?? lines.find((l) => l.trim()) ?? '').trim().slice(0, 300) || null;
+  const lines = output.split('\n').filter((l) => l.trim());
+
+  // `ImportError:` has no word boundary before "Error", so a \berror\b pattern
+  // misses every Python exception. Match the class-name shape explicitly.
+  const exception = [...lines].reverse().find((l) => /^\s*\w*(?:Error|Exception)\b.*:/.test(l));
+  if (exception) return exception.trim().slice(0, 300);
+
+  const signal = lines.find((l) => /\b(error|failed|failure)\b|✕|×|●/i.test(l));
+  return (signal ?? lines[0] ?? '').trim().slice(0, 300) || null;
 }
 
 /** Strip paths, numbers and quoted literals so cosmetically different messages match. */

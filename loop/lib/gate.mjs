@@ -112,8 +112,8 @@ export async function runGate(contract, tier, { quiet = false } = {}) {
 export function failureBrief(run) {
   const blocking = run.checks.filter((c) => !c.ok && !c.optional && !c.skipped);
   const lines = blocking.map((c) => {
-    const head = c.output.split('\n').filter(Boolean).slice(0, 25).join('\n');
-    return `--- ${c.name} (${c.cmd}) ${c.timedOut ? 'TIMED OUT' : `exit ${c.code}`} ---\n${head}`;
+    const body = relevantLines(c.output, 25).join('\n');
+    return `--- ${c.name} (${c.cmd}) ${c.timedOut ? 'TIMED OUT' : `exit ${c.code}`} ---\n${body}`;
   });
   return lines.join('\n\n');
 }
@@ -131,13 +131,27 @@ function detail(entry) {
 }
 
 function excerpt(check) {
-  const body = check.output
-    .split('\n')
-    .filter(Boolean)
-    .slice(0, 20)
+  const body = relevantLines(check.output, 20)
     .map((l) => `    ${l}`)
     .join('\n');
   return `  ${check.name} — ${check.cmd}\n${body}\n`;
+}
+
+/**
+ * Pick the lines that actually say what went wrong.
+ *
+ * Compilers and linters put the real error first, so the head is right for them.
+ * Stack traces put it last — a Python traceback's head is nothing but interpreter
+ * frames. When output is longer than the budget we show both ends, because
+ * guessing which convention a given tool follows is a losing game.
+ */
+function relevantLines(output, budget) {
+  const lines = (output ?? '').split('\n').filter(Boolean);
+  if (lines.length <= budget) return lines;
+
+  const head = Math.ceil(budget / 2);
+  const tail = budget - head;
+  return [...lines.slice(0, head), `... ${lines.length - budget} lines omitted ...`, ...lines.slice(-tail)];
 }
 
 const pad = (s) => s.padEnd(14);
