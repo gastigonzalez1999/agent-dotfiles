@@ -41,18 +41,6 @@ Cursor gets the same skills and a `toolkit-loop.mdc` rule, but **no enforcement*
 
 It is opt-in because it commits to the repo without being asked. That is fine on a personal project and rude on a shared one — on a work repo leave it off and run `loop retro` by hand to see what it would say.
 
-### Using this on a work repository
-
-The gates are fine and useful. Retro is not — leave it off.
-
-To trial the loop without touching shared files, put `.agent/` in `.git/info/exclude` rather than `.gitignore`: it is per-clone and never committed, so the repo sees nothing. Reasonable starting point:
-
-```json
-"enforce": { "stopGate": "test", "postEditGate": false, "retro": "off" }
-```
-
-`test` rather than `full`, because work repos tend to have slow builds and pre-existing failures that would block you on day one.
-
 ### Keeping Cursor in sync
 
 Skills are authored here once and generated into cursor-dotfiles:
@@ -60,6 +48,48 @@ Skills are authored here once and generated into cursor-dotfiles:
 ```bash
 node scripts/sync-to-cursor.mjs ../cursor-dotfiles
 ```
+
+## If you cloned this on a work machine
+
+Read this before doing anything else. Two rules, one of which is not obvious.
+
+### 1. Never push from the work machine
+
+**This repository is public.** On a work machine, `~/.claude/loop/` accumulates file paths and error-message snippets from whatever you build there — locally, and only locally. Nothing here ever pushes on its own: retro's single git command is `commit`, and there is no `push` anywhere in the runner.
+
+But "I'll just sync my dotfiles" is a normal reflex, and it is the moment a work codebase's internals reach a public repo.
+
+Treat the work clone as **read-only**. Pull to update it; make changes at home.
+
+### 2. `retro: "off"` on every work repository
+
+Which is the default, and means off completely — a repo that has not opted in contributes nothing to `loop retro --global`, not even a count, so its error text cannot surface in a suggestion aimed at these public global rules.
+
+Take the gates, leave the learning at home. The gates encode "how do I know this works here", which is exactly what you do not know in your first month on an unfamiliar codebase. Retro's value compounds over years of your own code, and at work it is all downside.
+
+### Setting up a work repository
+
+Trial it without touching anything the team shares — `.git/info/exclude` is per-clone and never committed:
+
+```bash
+node ~/.claude/loop/loop.mjs init
+echo ".agent/" >> .git/info/exclude
+git checkout -- .gitignore            # undo what init wrote
+```
+
+Run each gate by hand once. That tells you both whether the detected commands work and whether the repo is currently green. Then:
+
+```json
+"enforce": { "stopGate": "test", "postEditGate": false, "retro": "off" }
+```
+
+`test` rather than `full`: work repos tend to have slow builds and pre-existing failures, and a gate that blocks you on day one for breakage you did not cause is a gate you switch off on day two. Raise it as the repo gets green.
+
+Propose committing `.agent/loop.json` only once it has earned its place — at that point the gates are a team decision, not yours.
+
+### If someone asks what it does
+
+It runs commands the repository already declares and checks exit codes. No network calls (the only `fetch` is `loop doctor` hitting health URLs your own contract names, normally localhost), no telemetry, and `commit` is the only git command it can run — never `push`, and only where retro is explicitly enabled.
 
 ## Agents
 
