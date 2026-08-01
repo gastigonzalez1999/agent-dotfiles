@@ -15,7 +15,9 @@ loop retro --log        # every automated change, with its evidence
 loop retro --revert ID  # undo one change
 ```
 
-This runs automatically at session start, throttled to once a week per project. You mostly invoke it by hand to **audit** it.
+**Off unless a repo opts in** with `"enforce": { "retro": "auto" }`. Where it is on, it runs automatically at session start, throttled to once a week per project, and you mostly invoke it by hand to **audit** it.
+
+Opt-in rather than opt-out because it commits to the repo unattended. **Do not enable it on a repo you share with other people** without their agreement — a `chore(loop-retro):` commit appearing on a feature branch is not a pleasant surprise for a reviewer.
 
 ## What it may write, and where
 
@@ -44,10 +46,13 @@ loop retro --revert a2416def  # undo it
 
 If a rule is right but badly worded, **move it out of the block** and rewrite it in your own words. Retro only owns what is inside the markers — promoting a line out of the block is how a machine-generated observation becomes a real rule.
 
-## Turning it off
+## Turning it on and off
 
-- One repo: `"enforce": { "retro": "off" }` in `.agent/loop.json`
-- Everywhere: `loop install-hooks` without `--with-retro` removes the SessionStart hook
+- **On, one repo:** `"enforce": { "retro": "auto" }` in `.agent/loop.json`
+- **Off, one repo:** remove that, or set `"retro": "off"`
+- **Off everywhere:** `loop install-hooks` without `--with-retro` removes the SessionStart hook
+
+Personal projects are the place for this. On a work repo, leave it off and run `loop retro` by hand when you want to see what it would say.
 
 ## What it deliberately does not do
 

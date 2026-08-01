@@ -21,7 +21,7 @@ export function detectContract(root) {
       gates,
       ...(services.length ? { services } : {}),
       budget: { maxIterations: 5, gateTimeoutSec: 600 },
-      enforce: { stopGate: gates.full.length ? 'full' : 'test', postEditGate: false, retro: 'auto' },
+      enforce: { stopGate: gates.full.length ? 'full' : 'test', postEditGate: false, retro: 'off' },
     },
     notes,
   };

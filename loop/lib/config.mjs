@@ -15,7 +15,9 @@ export const HOME = resolve(homedir());
 
 const DEFAULTS = {
   budget: { maxIterations: 5, gateTimeoutSec: 600 },
-  enforce: { stopGate: 'full', postEditGate: false, retro: 'auto' },
+  // retro defaults to off: it commits to the repo unattended, and a feature that
+  // writes to shared code must be chosen, never inherited. Set "auto" per repo.
+  enforce: { stopGate: 'full', postEditGate: false, retro: 'off' },
 };
 
 /**

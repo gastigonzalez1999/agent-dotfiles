@@ -75,8 +75,8 @@
         },
         "retro": {
           "enum": ["auto", "off"],
-          "default": "auto",
-          "description": "Whether `loop retro` may write learned rules into this repo."
+          "default": "off",
+          "description": "Whether `loop retro` may write learned rules into this repo and commit them unattended. Off unless explicitly set to \"auto\" — this writes to shared code, so it must be chosen per repo rather than inherited. Do not enable on a repo you share with other people without their agreement."
         }
       }
     }

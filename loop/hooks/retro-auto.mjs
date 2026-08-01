@@ -7,8 +7,9 @@
  * hook always exits 0, because a failure to learn is not a reason to stop a
  * session from starting.
  *
- * Opt out per repo with `"enforce": { "retro": "off" }`, or everywhere by
- * removing this hook from settings.json.
+ * Opt in per repo with `"enforce": { "retro": "auto" }`. Off everywhere else,
+ * because this commits to the repo unattended and that has to be a choice —
+ * especially on a repo shared with other people.
  */
 import { readHookInput, allow } from './shared.mjs';
 import { tryLoadContract } from '../lib/config.mjs';
@@ -18,7 +19,8 @@ const input = await readHookInput();
 
 try {
   const contract = tryLoadContract(input.cwd || process.cwd());
-  if (contract && contract.enforce.retro !== 'off') {
+  // Opt-in: only an explicit "auto" lets this write to a repo.
+  if (contract && contract.enforce.retro === 'auto') {
     const { changes = [], throttled } = autoApply(contract.__root, contract) ?? {};
     if (!throttled && changes.length) {
       // Visible to the user, not injected into the agent's context.

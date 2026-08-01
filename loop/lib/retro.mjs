@@ -71,7 +71,13 @@ export function findings(root) {
  * containment tests and `--log` rely on.
  */
 export function apply(root, { dryRun = false, contract } = {}) {
-  if (contract?.enforce?.retro === 'off') return { skipped: 'retro disabled for this repo', changes: [] };
+  // Opt-in, not opt-out: anything other than an explicit "auto" means no.
+  if (contract?.enforce?.retro !== 'auto') {
+    return {
+      skipped: 'retro is off for this repo. Set "enforce": { "retro": "auto" } in .agent/loop.json to enable it.',
+      changes: [],
+    };
+  }
 
   // Before touching anything: if the ledger is not writable we must not write at
   // all, because an applied change with no ledger entry can never be reverted.

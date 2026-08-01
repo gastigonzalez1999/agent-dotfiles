@@ -35,9 +35,23 @@ Cursor gets the same skills and a `toolkit-loop.mdc` rule, but **no enforcement*
 
 ### Learning
 
-`loop retro` turns run history into rules. With `--with-retro` on the installer it runs unattended once a week per project. It writes only inside a `<!-- loop-retro:begin -->` managed block, needs 5+ occurrences across 2+ days before writing anything, caps itself at 40 lines, commits separately as `chore(loop-retro):`, and every change is revertible by id (`loop retro --log`, `loop retro --revert <id>`).
+`loop retro` turns run history into rules. It writes only inside a `<!-- loop-retro:begin -->` managed block, needs 5+ occurrences across 2+ days before writing anything, caps itself at 40 lines, commits separately as `chore(loop-retro):`, and every change is revertible by id (`loop retro --log`, `loop retro --revert <id>`).
 
-Opt out per repo with `"enforce": { "retro": "off" }`.
+**Off by default.** Opt in per repo with `"enforce": { "retro": "auto" }`, and install the hook with `loop install-hooks --with-retro` to have it run unattended once a week.
+
+It is opt-in because it commits to the repo without being asked. That is fine on a personal project and rude on a shared one — on a work repo leave it off and run `loop retro` by hand to see what it would say.
+
+### Using this on a work repository
+
+The gates are fine and useful. Retro is not — leave it off.
+
+To trial the loop without touching shared files, put `.agent/` in `.git/info/exclude` rather than `.gitignore`: it is per-clone and never committed, so the repo sees nothing. Reasonable starting point:
+
+```json
+"enforce": { "stopGate": "test", "postEditGate": false, "retro": "off" }
+```
+
+`test` rather than `full`, because work repos tend to have slow builds and pre-existing failures that would block you on day one.
 
 ### Keeping Cursor in sync
 
