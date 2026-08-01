@@ -1,7 +1,12 @@
 ---
 name: fix-and-verify
-description: Run tsc + jest + eslint, fix ALL failures, then re-run everything to confirm fully green. Use at the end of a feature build or before creating a PR.
+description: "DEPRECATED — use inner-loop instead. Hardcodes tsc/jest/eslint, so it only fits one stack; inner-loop reads the repo's own .agent/loop.json."
 ---
+
+> **Deprecated.** Superseded by `inner-loop`, which gets its commands from
+> `.agent/loop.json` instead of assuming this stack. The stack-specific fixes
+> that used to live here moved to `inner-loop/references/nestjs-next-fixes.md`.
+> Kept only for reference; safe to delete.
 
 # Fix and Verify
 

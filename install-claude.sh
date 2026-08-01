@@ -5,21 +5,32 @@
 
 CLAUDE_DIR="$HOME/.claude"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+mkdir -p "$CLAUDE_DIR"
 
 echo "Setting up Claude Code dotfiles..."
+
+# Node powers the loop runner and the settings merge. Everything else degrades
+# gracefully without it, so warn rather than abort.
+command -v node >/dev/null 2>&1 || echo "  [warn] node not found — the loop runner and hook install will be skipped"
 
 # ---------------------------------------------------------------------------
 # 1. Copy statusline script
 # ---------------------------------------------------------------------------
 echo "Installing statusline script..."
-cp "$SCRIPT_DIR/statusline-command-mac.sh" "$CLAUDE_DIR/statusline-command.sh"
+STATUSLINE="$SCRIPT_DIR/statusline-command-mac.sh"
+# Prefer a platform-specific variant when one exists (statusline-command-<os>.sh).
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*) [ -f "$SCRIPT_DIR/statusline-command-win.sh" ] && STATUSLINE="$SCRIPT_DIR/statusline-command-win.sh" ;;
+    Linux)                [ -f "$SCRIPT_DIR/statusline-command-linux.sh" ] && STATUSLINE="$SCRIPT_DIR/statusline-command-linux.sh" ;;
+esac
+cp "$STATUSLINE" "$CLAUDE_DIR/statusline-command.sh"
 chmod +x "$CLAUDE_DIR/statusline-command.sh"
 
 # ---------------------------------------------------------------------------
 # 2. Copy settings.json (won't overwrite if it exists — merge manually)
 # ---------------------------------------------------------------------------
 if [ -f "$CLAUDE_DIR/settings.json" ]; then
-    echo "settings.json already exists — skipping. Merge manually from settings-mac.json if needed."
+    echo "settings.json already exists — leaving it alone. Hooks are merged in separately below."
 else
     echo "Installing settings.json..."
     cp "$SCRIPT_DIR/settings-mac.json" "$CLAUDE_DIR/settings.json"
@@ -112,12 +123,30 @@ install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docke
 install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices" "nodejs-best-practices"
 
 # --- Custom skills (from agent-dotfiles; always match this repo) ---
+# Installs straight into $SKILLS_DIR. This previously targeted
+# "$SKILLS_DIR/.claude/skills", a nested path Claude Code never scans, so these
+# skills silently never installed. rsync is gone too — it is absent on Windows.
 echo ""
 echo "Installing custom skills..."
-CUSTOM_SKILLS_DIR="$SKILLS_DIR/.claude/skills"
-mkdir -p "$CUSTOM_SKILLS_DIR"
-rsync -a "$SCRIPT_DIR/skills/" "$CUSTOM_SKILLS_DIR/"
-echo "  [ok] synced $SCRIPT_DIR/skills/ -> $CUSTOM_SKILLS_DIR/"
+mkdir -p "$SKILLS_DIR"
+for skill_dir in "$SCRIPT_DIR"/skills/*/; do
+    [ -d "$skill_dir" ] || continue
+    name=$(basename "$skill_dir")
+    rm -rf "$SKILLS_DIR/$name"
+    cp -R "$skill_dir" "$SKILLS_DIR/$name"
+done
+echo "  [ok] synced $SCRIPT_DIR/skills/ -> $SKILLS_DIR/"
+
+# --- Verification loop runner + enforcement hooks ---
+echo ""
+echo "Installing the loop runner..."
+rm -rf "$CLAUDE_DIR/loop"
+cp -R "$SCRIPT_DIR/loop" "$CLAUDE_DIR/loop"
+echo "  [ok] $CLAUDE_DIR/loop"
+# Merges into an existing settings.json rather than skipping it, so hooks land on
+# a machine that is already configured. Pass --with-retro for unattended learning.
+node "$CLAUDE_DIR/loop/loop.mjs" install-hooks ${LOOP_RETRO:+--with-retro} || \
+    echo "  [warn] could not install hooks — run: node $CLAUDE_DIR/loop/loop.mjs install-hooks"
 
 # ---------------------------------------------------------------------------
 # 4. Copy CLAUDE.md global rules

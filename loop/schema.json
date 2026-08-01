@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/gastigonzalez1999/agent-dotfiles/main/loop/schema.json",
+  "title": "Agent loop contract",
+  "description": "Declares how an agent verifies its own work in this repository. The loop runner is generic; this file is the only per-project part.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["gates"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "gates": {
+      "type": "object",
+      "description": "Verification tiers ordered by latency budget.",
+      "additionalProperties": false,
+      "properties": {
+        "fast": {
+          "description": "Under ~15s. Safe to run after every edit.",
+          "$ref": "#/definitions/checkList"
+        },
+        "test": {
+          "description": "Under ~2min. Run after completing a unit of work.",
+          "$ref": "#/definitions/checkList"
+        },
+        "full": {
+          "description": "Unbounded. Must pass before declaring work done or opening a PR.",
+          "$ref": "#/definitions/checkList"
+        }
+      }
+    },
+    "services": {
+      "type": "array",
+      "description": "Long-running processes this project needs. Used by `loop doctor`.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "start": { "type": "string", "description": "Command that starts the service." },
+          "health": { "type": "string", "description": "HTTP URL polled to decide if the service is up." },
+          "port": { "type": "integer", "description": "Port to check for a listener when no health URL exists." },
+          "expectStatus": { "type": "integer", "default": 200 }
+        }
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "maxIterations": {
+          "type": "integer",
+          "default": 5,
+          "description": "How many fix-and-rerun cycles an agent may burn on one gate before escalating to a human."
+        },
+        "gateTimeoutSec": {
+          "type": "integer",
+          "default": 600,
+          "description": "Per-check timeout. The check is killed and marked failed when exceeded."
+        }
+      }
+    },
+    "enforce": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "stopGate": {
+          "description": "Tier the Claude Code Stop hook requires green before the agent may finish. null disables the gate.",
+          "default": "full",
+          "oneOf": [{ "enum": ["fast", "test", "full"] }, { "type": "null" }]
+        },
+        "postEditGate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run the fast tier automatically after every file edit. High friction; opt in per repo."
+        },
+        "retro": {
+          "enum": ["auto", "off"],
+          "default": "auto",
+          "description": "Whether `loop retro` may write learned rules into this repo."
+        }
+      }
+    }
+  },
+  "definitions": {
+    "checkList": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "cmd"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Stable identifier. Used as the history fingerprint key, so renaming it resets that check's learned history."
+          },
+          "cmd": { "type": "string", "description": "Shell command. Non-zero exit means failure." },
+          "cwd": { "type": "string", "description": "Directory relative to the repo root. Defaults to the repo root." },
+          "optional": {
+            "type": "boolean",
+            "default": false,
+            "description": "Runs and is reported, but never fails the gate. For slow or flaky checks."
+          },
+          "timeoutSec": { "type": "integer", "description": "Overrides budget.gateTimeoutSec for this check." }
+        }
+      }
+    }
+  }
+}

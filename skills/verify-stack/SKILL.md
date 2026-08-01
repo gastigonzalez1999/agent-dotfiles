@@ -1,7 +1,11 @@
 ---
 name: verify-stack
-description: Check that the full development stack is healthy: Docker services running, ports free, env vars loaded, API responding, frontend accessible. Use at the start of a session or after "nothing is working".
+description: "DEPRECATED — use `loop doctor` instead. Hardcodes ports 3000/3002/5433/6379 and lsof, which is wrong for other projects and broken on Windows."
 ---
+
+> **Deprecated.** Superseded by `loop doctor`, which reads services and ports
+> from `.agent/loop.json` and probes them with a plain TCP connect that works on
+> Windows too. Kept only for reference; safe to delete.
 
 # Verify Stack
 

@@ -1,0 +1,20 @@
+{
+  "name": "agent-dotfiles",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portable agent dotfiles: skills, rules, and the verification loop runner.",
+  "type": "module",
+  "bin": {
+    "loop": "loop/loop.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "sync:cursor": "node scripts/sync-to-cursor.mjs"
+  },
+  "files": [
+    "loop",
+    "skills"
+  ]
+}

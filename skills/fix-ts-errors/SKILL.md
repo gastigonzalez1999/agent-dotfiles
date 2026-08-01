@@ -1,7 +1,11 @@
 ---
 name: fix-ts-errors
-description: Run tsc --noEmit, read all TypeScript errors, fix them all systematically, then re-run to confirm zero errors. Use when the user says "fix TypeScript errors", "tsc is failing", or at the end of a feature build.
+description: "DEPRECATED — use inner-loop instead, which runs this repo's own typecheck command from .agent/loop.json rather than assuming `tsc --noEmit`."
 ---
+
+> **Deprecated.** Superseded by `inner-loop`. The TypeScript-specific fixes moved
+> to `inner-loop/references/nestjs-next-fixes.md`. Kept only for reference;
+> safe to delete.
 
 # Fix TypeScript Errors
 

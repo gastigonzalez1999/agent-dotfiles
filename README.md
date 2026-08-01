@@ -2,6 +2,51 @@
 
 Dotfiles and skills setup for AI coding agents. One script per agent — run on any new machine to get a consistent environment.
 
+## The verification loop
+
+Agents that verify their own work need to know *how* to verify it, and that answer is different in every repo. So the machinery is generic and lives here; the answer lives in each project as `.agent/loop.json`.
+
+```bash
+loop init      # detect this project's checks, write .agent/loop.json
+loop fast      # seconds — after an edit
+loop test      # after a unit of work
+loop full      # before claiming the work is done
+loop doctor    # are the declared services up?
+loop report    # what the loop cost, and where it keeps failing
+```
+
+Exit codes: **0** green · **1** a check failed · **2** configuration or environment problem.
+
+**On a machine with the dotfiles installed:** `node ~/.claude/loop/loop.mjs <cmd>`
+**On any other machine:** `npx -y github:gastigonzalez1999/agent-dotfiles loop init`
+
+### Enforcement
+
+`install-claude.sh` merges two Claude Code hooks into `settings.json`:
+
+| Hook | Effect |
+|---|---|
+| `Stop` | Blocks the agent from finishing while the gate is red or stale |
+| `PostToolUse` | Tracks edits; runs the fast gate only where `enforce.postEditGate` is on |
+
+Projects without `.agent/loop.json` are unaffected — the hooks exit immediately.
+
+Cursor gets the same skills and a `toolkit-loop.mdc` rule, but **no enforcement** — Cursor has no hook system, so there it is advisory.
+
+### Learning
+
+`loop retro` turns run history into rules. With `--with-retro` on the installer it runs unattended once a week per project. It writes only inside a `<!-- loop-retro:begin -->` managed block, needs 5+ occurrences across 2+ days before writing anything, caps itself at 40 lines, commits separately as `chore(loop-retro):`, and every change is revertible by id (`loop retro --log`, `loop retro --revert <id>`).
+
+Opt out per repo with `"enforce": { "retro": "off" }`.
+
+### Keeping Cursor in sync
+
+Skills are authored here once and generated into cursor-dotfiles:
+
+```bash
+node scripts/sync-to-cursor.mjs ../cursor-dotfiles
+```
+
 ## Agents
 
 | Agent | Install script | What it sets up |

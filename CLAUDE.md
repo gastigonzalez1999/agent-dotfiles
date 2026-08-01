@@ -33,6 +33,18 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 ---
 
+# loop engineering
+
+The verification loop. Machinery is generic and lives in `loop/`; each project declares its own checks in `.agent/loop.json`.
+
+- **inner-loop** (`skills/inner-loop/SKILL.md`) — verify your own work and iterate to green. Use after any non-trivial edit and before claiming done. **Supersedes `fix-and-verify`, `fix-ts-errors`, `verify-stack`.**
+- **loop-init** (`skills/loop-init/SKILL.md`) — create or repair a project's `.agent/loop.json`. Trigger: repo has no contract, or its checks are wrong.
+- **outer-loop** (`skills/outer-loop/SKILL.md`) — the macro cycle (understand → plan → implement → verify → review → hand off). Trigger: any work spanning more than a couple of files.
+- **loop-autonomous** (`skills/loop-autonomous/SKILL.md`) — grind unattended toward a machine-checkable stop condition. Trigger: "get the tests passing", "make the build green".
+- **loop-retro** (`skills/loop-retro/SKILL.md`) — turn run history into rules. Runs automatically; invoke to audit or revert.
+
+`loop full` must exit 0 before work is reported as done. A Stop hook enforces this.
+
 # qa
 
 - **qa** (`skills/qa/SKILL.md`) — interactive QA session: user reports bugs, agent files GitHub issues. Trigger: `/qa` or when user mentions "QA session", "report a bug", or "file an issue".
