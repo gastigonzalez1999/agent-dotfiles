@@ -150,6 +150,13 @@ export function globalFindings() {
   const counts = new Map();
   for (const root of registeredProjects()) {
     if (!existsSync(root)) continue;
+
+    // A repo that opted out of retro contributes nothing — not even to a count.
+    // Findings carry real error text and file paths from the codebase they came
+    // from, and the global rules they would feed live in a dotfiles repo that is
+    // very likely pushed somewhere public. "Off" has to mean off everywhere.
+    if (!optedIn(root)) continue;
+
     for (const f of findings(root).filter((x) => x.kind === 'recurring-failure')) {
       const e = counts.get(f.fingerprint) ?? { fingerprint: f.fingerprint, repos: new Set(), count: 0, since: f.since, example: f.line };
       e.repos.add(root);
@@ -160,6 +167,17 @@ export function globalFindings() {
   return [...counts.values()]
     .filter((e) => e.repos.size >= MIN_REPOS_FOR_GLOBAL)
     .map((e) => ({ ...e, repos: [...e.repos] }));
+}
+
+/** Read a repo's own opt-in decision straight from disk; never assume a default. */
+function optedIn(root) {
+  try {
+    const path = join(root, '.agent', 'loop.json');
+    if (!existsSync(path)) return false;
+    return JSON.parse(readFileSync(path, 'utf8'))?.enforce?.retro === 'auto';
+  } catch {
+    return false;
+  }
 }
 
 function pickDoc(root) {
