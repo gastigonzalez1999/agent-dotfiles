@@ -43,6 +43,17 @@ echo "Installing skills..."
 SKILLS_DIR="$CLAUDE_DIR/skills"
 mkdir -p "$SKILLS_DIR"
 
+# Each skill declares who it ships to via `targets:` frontmatter. Claude skips
+# the Cursor-only stack docs (nestjs, docker, prisma…) because it already gets
+# richer vendored equivalents from upstream repos below. A skill with no
+# `targets:` line ships everywhere, so older skills keep working.
+targets_include() {
+    local skill_md="$1/SKILL.md" harness="$2" line
+    [ -f "$skill_md" ] || return 1
+    line=$(grep -m1 '^targets:' "$skill_md" 2>/dev/null) || return 0
+    case "$line" in *"$harness"*) return 0 ;; *) return 1 ;; esac
+}
+
 install_skill() {
     local repo="$1"
     local subfolder="$2"
@@ -132,6 +143,9 @@ mkdir -p "$SKILLS_DIR"
 for skill_dir in "$SCRIPT_DIR"/skills/*/; do
     [ -d "$skill_dir" ] || continue
     name=$(basename "$skill_dir")
+    # Skipped skills are left alone rather than removed: a same-named skill here
+    # may be a symlink the user installed from elsewhere.
+    targets_include "$skill_dir" claude || { echo "  [skip] $name — not targeted at claude"; continue; }
     rm -rf "$SKILLS_DIR/$name"
     cp -R "$skill_dir" "$SKILLS_DIR/$name"
 done

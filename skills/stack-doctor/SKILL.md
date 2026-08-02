@@ -1,6 +1,7 @@
 ---
 name: stack-doctor
 description: Diagnose why the dev stack isn't working. Checks Docker, ports, env vars, CORS config, database connection, and API/frontend health in one shot. Use when "nothing is working" or the app won't start.
+targets: [claude, cursor, codex]
 ---
 
 # Stack Doctor
@@ -68,4 +69,4 @@ curl -sv -X OPTIONS http://localhost:3000/api/v1/auth/login \
 Summarize findings as a prioritized fix list:
 1. (Critical) PostgreSQL container not running → `docker compose up -d postgres`
 2. (Critical) CORS rejecting localhost:3002 → update corsOrigins default in config class
-3. (Warning) 3 TypeScript errors → run `/fix-ts-errors`
+3. (Warning) 3 TypeScript errors → run the `inner-loop` skill

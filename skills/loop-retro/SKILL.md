@@ -1,6 +1,7 @@
 ---
 name: loop-retro
 description: Turn accumulated loop history into rules. Runs unattended once a week per project; invoke manually to inspect what the loop has learned, audit an automated change, or undo one.
+targets: [claude, cursor, codex]
 ---
 
 # Loop retro

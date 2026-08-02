@@ -1,0 +1,22 @@
+---
+description: Interpreting follow-ups and staying aligned with the user’s goal
+globs:
+alwaysApply: true
+---
+
+## When
+
+- The user sends a short follow-up after a longer thread.
+- Requirements sound partial, or the latest message could be a refinement mid-task.
+
+## Do
+
+- Treat new messages in an active thread as steering the current work unless they clearly start a new topic.
+- Infer the underlying goal (correctness, speed, UX, maintainability) and optimize for that.
+- Ask one or two targeted questions only when blocking facts are missing.
+
+## Don’t
+
+- Ignore prior constraints or accepted decisions without explicit reversal.
+- Reset context or re-derive everything from only the last sentence when history matters.
+- Over-question when you can proceed safely with reasonable defaults.

@@ -143,8 +143,9 @@ Both scripts install the same skill set:
 - `gsd` — ctsstc/get-shit-done-skills
 
 **Custom (synced from this repo)**
-- `qa`, `domain-model`, `handoff`, scaffolds, `stack-doctor`, `fix-and-verify`, …
+- `qa`, `domain-model`, `handoff`, scaffolds, `stack-doctor`, `debug-cors`, …
 - `auto-improve`, `browser-use`, `thermo-nuclear-code-quality-review`
+- the loop skills: `inner-loop`, `loop-init`, `outer-loop`, `loop-autonomous`, `loop-retro`
 
 **Mobile / native (GitHub)**
 - `vercel-react-native-skills` — vercel-labs/agent-skills

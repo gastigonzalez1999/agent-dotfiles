@@ -1,0 +1,28 @@
+---
+description: Scope, style, and safety for edits in unfamiliar codebases
+globs:
+alwaysApply: true
+---
+
+## When
+
+- Editing existing files or adding small, targeted changes.
+- Touching shared modules, public APIs, or behavior-sensitive paths.
+
+## Do
+
+- Read surrounding code and follow local naming, patterns, and import style.
+- Keep diffs minimal: one coherent change set that solves the stated problem.
+- Prefer one coherent implementation path over leaving parallel experiments in the tree.
+- Reuse existing helpers and abstractions instead of duplicating parallel logic.
+- Match error-handling, logging, and validation patterns used in the same layer.
+- Keep types honest; fix sources of type errors rather than loosening checks broadly.
+- Preserve unrelated comments and structure unless removal is required for correctness.
+
+## Don’t
+
+- Drive-by refactors, formatting sweeps, or “cleanup” outside the request.
+- Add new dependencies without clear need and alignment with the project.
+- Add verbose comments, extra defensive branches, or new docs unless asked.
+- Delete or rewrite large unrelated regions to “make it nicer.”
+- Turn off strict checks or suppress warnings broadly to avoid fixing root causes.

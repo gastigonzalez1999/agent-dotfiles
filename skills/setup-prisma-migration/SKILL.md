@@ -1,6 +1,7 @@
 ---
 name: setup-prisma-migration
 description: Create and apply a Prisma migration safely. Handles schema changes, nullable pitfalls, port conflicts, and seed data. Use when adding models, changing fields, or setting up the DB for the first time.
+targets: [claude, cursor, codex]
 ---
 
 # Setup Prisma Migration

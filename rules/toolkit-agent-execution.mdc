@@ -1,0 +1,23 @@
+---
+description: How the agent should run commands, verify results, and persist until done
+globs:
+alwaysApply: true
+---
+
+## When
+
+- Any task that can be validated in the environment (build, test, lint, scripts, queries).
+- When instructions conflict between “tell me what to run” and “you have shell access.”
+
+## Do
+
+- Prefer running commands yourself over asking the user to run them, when safe.
+- Retry with a different approach after a failure; narrow the failure before changing code.
+- Use the project’s authoritative config (dates, env files, lockfiles) instead of guessing versions.
+- Read terminal or log output enough to confirm success or capture the real error.
+
+## Don’t
+
+- Stop after a single failed attempt without diagnosing or trying a reasonable alternative.
+- Assume success from silence; confirm exit codes and relevant output when it matters.
+- Expand scope (refactors, new features) while the core task is still unresolved.

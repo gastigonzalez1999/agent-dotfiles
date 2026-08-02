@@ -1,0 +1,48 @@
+---
+description: Verify your own work through this repo's .agent/loop.json contract before claiming anything is done
+globs:
+alwaysApply: true
+---
+
+# Verification loop
+
+When this project has a `.agent/loop.json`, it declares exactly how to check your work. Use it instead of guessing commands.
+
+```bash
+loop fast     # seconds — after an edit
+loop test     # after a unit of work
+loop full     # before you claim the work is done
+```
+
+Resolve `loop` to the first of these that exists:
+
+1. `./node_modules/.bin/loop`
+2. `node ~/.cursor/loop/loop.mjs`
+3. `npx -y github:gastigonzalez1999/agent-dotfiles loop`
+
+Exit codes: **0** green · **1** a check failed · **2** configuration or environment problem.
+
+## When
+
+- After any non-trivial edit — `loop fast`
+- Before reporting work complete or opening a PR — `loop full` must exit 0
+- No `.agent/loop.json`? Read the `loop-init` skill and create one before relying on ad-hoc commands.
+
+## Do
+
+- Read the **first** error, not the last — compilers cascade.
+- Fix the cause. Re-run the **same** tier.
+- Read `.agent/.loop-last.json` for full output rather than re-running commands by hand.
+- Treat exit code 2 as an environment problem — fix the setup, not the source.
+- Stop and escalate after `budget.maxIterations` (default 5) failed cycles on one gate.
+
+## Don't
+
+- Don't claim work is done on the strength of a `fast` run. `full` is the bar.
+- Don't silence a check to make it pass — no `any`, no `@ts-expect-error`, no loosened assertion.
+- Don't edit a test so it matches broken behaviour.
+- Don't invent commands when the contract already names them.
+
+## Note
+
+Cursor has no hook system, so nothing enforces this — unlike Claude Code, where a Stop hook blocks finishing while the gate is red. Here it is on you to run the loop.

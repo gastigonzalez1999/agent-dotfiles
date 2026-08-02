@@ -1,6 +1,7 @@
 ---
 name: outer-loop
 description: The macro cycle for non-trivial work — understand, plan, implement, verify, review, hand off. Use at the start of a feature, refactor, or anything spanning more than a couple of files. Sequences existing skills rather than replacing them.
+targets: [claude, cursor, codex]
 ---
 
 # Outer loop

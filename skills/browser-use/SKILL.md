@@ -3,6 +3,7 @@ name: browser-use
 description: >-
   Chrome DevTools MCP automation against the existing Chrome profile. Use for
   live UI verification, login-heavy sites, and screenshot regressions.
+targets: [claude, cursor, codex]
 ---
 
 # Browser Use

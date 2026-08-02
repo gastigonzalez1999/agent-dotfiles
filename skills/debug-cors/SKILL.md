@@ -1,6 +1,7 @@
 ---
 name: debug-cors
 description: Debug CORS errors between a frontend and backend. Follows the exact sequence that resolves CORS issues in NestJS + Next.js stacks. Use when seeing "blocked by CORS policy", missing Access-Control-Allow-Origin, or preflight failures.
+targets: [claude, cursor, codex]
 ---
 
 # Debug CORS

@@ -1,6 +1,7 @@
 ---
 name: inner-loop
-description: Verify your own work and iterate to green using this repo's .agent/loop.json contract. Use after any non-trivial edit, and always before declaring work done. Stack-agnostic — replaces fix-and-verify, fix-ts-errors and verify-stack.
+description: Verify your own work and iterate to green using this repo's .agent/loop.json contract. Use after any non-trivial edit, and always before declaring work done. Stack-agnostic — reads the repo's own commands rather than assuming a stack.
+targets: [claude, cursor, codex]
 ---
 
 # Inner loop
