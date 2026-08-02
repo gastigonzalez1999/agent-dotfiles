@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 # Claude Code dotfiles setup script
-# Usage: bash install-claude.sh
+# Usage: bash install-claude.sh [--skip-external]
+#   --skip-external   custom skills, settings and hooks only; no GitHub clones.
+#                     Fast, offline, and what a fresh-machine test wants.
 # Run this on any new machine to replicate your Claude Code setup.
+
+SKIP_EXTERNAL=0
+for arg in "$@"; do
+    case "$arg" in
+        --skip-external) SKIP_EXTERNAL=1 ;;
+        -h|--help) echo "Usage: bash install-claude.sh [--skip-external]"; exit 0 ;;
+        *) echo "Unknown option: $arg"; exit 2 ;;
+    esac
+done
 
 CLAUDE_DIR="$HOME/.claude"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -57,6 +68,8 @@ targets_include() {
 }
 
 install_skill() {
+    [ "$SKIP_EXTERNAL" -eq 1 ] && return 0
+
     local repo="$1"
     local subfolder="$2"
     local skill_name="$3"
@@ -208,5 +221,4 @@ echo ""
 echo "Done! Skills installed to $SKILLS_DIR"
 echo "Statusline script: $CLAUDE_DIR/statusline-command.sh"
 echo ""
-echo "If settings.json was skipped, add this to $CLAUDE_DIR/settings.json:"
-echo '  "statusLine": { "type": "command", "command": "bash $HOME/.claude/statusline-command.sh" }'
+echo "Restart Claude Code to pick up the new skills and settings."

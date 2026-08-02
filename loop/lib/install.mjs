@@ -31,15 +31,19 @@ const isOurs = (entry) =>
 /** Unattended learning. Separate from the enforcement hooks because it *writes* rather than blocks. */
 const RETRO_SPEC = { event: 'SessionStart', script: 'retro-auto.mjs', timeout: 60 };
 
+// $HOME wins over homedir(): the installer resolves everything else from $HOME,
+// and on Windows homedir() reads USERPROFILE and ignores $HOME entirely.
+const HOME = process.env.HOME || homedir();
+
 export function installHooks({
-  settingsPath = join(homedir(), '.claude', 'settings.json'),
+  settingsPath = join(HOME, '.claude', 'settings.json'),
   dryRun = false,
   withRetro = false,
 } = {}) {
   // Hook commands are written as absolute paths to HOOKS_DIR, which resolves
   // relative to this file. Running the repo clone's copy therefore pins every
   // hook to that clone — fine on this machine, broken on the next one.
-  const installedRoot = join(homedir(), '.claude', 'loop');
+  const installedRoot = join(HOME, '.claude', 'loop');
   if (!resolve(HOOKS_DIR).startsWith(resolve(installedRoot))) {
     console.warn(
       `  [warn] installing hooks from ${HOOKS_DIR}\n` +

@@ -28,11 +28,17 @@ import { fileURLToPath } from 'node:url';
 const REPO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const BASE = join(REPO, 'claude', 'settings.base.json');
 
+// $HOME wins over homedir(): install-claude.sh resolves everything else from
+// $HOME, and on Windows homedir() reads USERPROFILE and ignores $HOME entirely.
+// When the two differ, the installer would copy skills to one home and write
+// settings to another.
+const home = process.env.HOME || homedir();
+
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const settingsPath = args.includes('--settings')
   ? resolve(args[args.indexOf('--settings') + 1])
-  : join(homedir(), '.claude', 'settings.json');
+  : join(home, '.claude', 'settings.json');
 
 if (!existsSync(BASE)) {
   console.error(`Missing ${BASE}`);
