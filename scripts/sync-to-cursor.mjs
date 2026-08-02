@@ -113,6 +113,12 @@ for (const file of readdirSync(join(REPO, 'rules'))) {
 }
 writeFileSync(join(stage, 'rules', GENERATED_RULE), buildSkillsIndex(shipping));
 
+// Slash commands live under ~/.cursor/commands, installed globally.
+mkdirSync(join(stage, 'commands'), { recursive: true });
+for (const file of readdirSync(join(REPO, 'cursor', 'commands'))) {
+  cpSync(join(REPO, 'cursor', 'commands', file), join(stage, 'commands', file));
+}
+
 // The runner itself ships too — a rule telling the agent to run `loop` is
 // useless on a machine where nothing provides it.
 cpSync(join(REPO, 'loop'), join(stage, 'loop'), { recursive: true });
@@ -121,7 +127,7 @@ cpSync(join(REPO, 'loop'), join(stage, 'loop'), { recursive: true });
 // Diff staging against the target.
 // ---------------------------------------------------------------------------
 
-const MANAGED = ['skills', 'rules', 'loop'];
+const MANAGED = ['skills', 'rules', 'commands', 'loop'];
 const changes = [];
 
 for (const dir of MANAGED) {

@@ -163,6 +163,18 @@ for src in "$SCRIPT_DIR/skills"/*/; do
     echo "  [ok] $name"
 done
 
+# --- Global instructions + rules ---
+# Previously unversioned: a new machine got the skills but none of the rules
+# that tell Codex when to use them.
+CODEX_DIR="${CODEX_HOME:-$HOME/.codex}"
+echo ""
+echo "Global instructions:"
+cp "$SCRIPT_DIR/codex/AGENTS.md" "$CODEX_DIR/AGENTS.md"
+echo "  [ok] AGENTS.md"
+mkdir -p "$CODEX_DIR/rules"
+cp "$SCRIPT_DIR/codex/default.rules" "$CODEX_DIR/rules/default.rules"
+echo "  [ok] rules/default.rules"
+
 echo ""
 echo "Done! Skills installed to $CODEX_SKILLS_DIR"
 echo "Restart Codex to pick up new skills."

@@ -1,0 +1,11 @@
+{
+  "_comment": "MCP servers installed at user scope. Matching permission rules live in claude/settings.base.json so these tools do not prompt on every call.",
+  "mcpServers": {
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": ["serve", "--mcp"],
+      "_requires": "the `codegraph` binary on PATH; skipped by the installer when absent"
+    }
+  }
+}

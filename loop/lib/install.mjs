@@ -36,6 +36,18 @@ export function installHooks({
   dryRun = false,
   withRetro = false,
 } = {}) {
+  // Hook commands are written as absolute paths to HOOKS_DIR, which resolves
+  // relative to this file. Running the repo clone's copy therefore pins every
+  // hook to that clone — fine on this machine, broken on the next one.
+  const installedRoot = join(homedir(), '.claude', 'loop');
+  if (!resolve(HOOKS_DIR).startsWith(resolve(installedRoot))) {
+    console.warn(
+      `  [warn] installing hooks from ${HOOKS_DIR}\n` +
+      `         These paths will not exist on another machine. Prefer:\n` +
+      `           node ${join(installedRoot, 'loop.mjs')} install-hooks`,
+    );
+  }
+
   const settings = readSettings(settingsPath);
   const before = JSON.stringify(settings);
 

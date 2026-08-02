@@ -155,7 +155,8 @@ Both scripts install the same skill set:
 
 `install-claude.sh` also installs:
 - **statusline** — macOS statusline script (`statusline-command-mac.sh`)
-- **settings.json** — Claude Code settings (skipped if one already exists — merge manually from `settings-mac.json`)
+- **settings.json** — merged from `claude/settings.base.json` (model, effort, theme, statusline, voice, plugins, marketplaces, MCP permissions). Keys the base does not declare are left alone, and a timestamped `.bak` is written. Hooks are owned by `loop install-hooks`, not by the merge.
+- **MCP servers** — `mcp/servers.json`; registered with `claude mcp add-json` when both the `claude` CLI and the server binary are present.
 
 ## Adding a new agent
 

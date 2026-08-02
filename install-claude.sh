@@ -29,11 +29,15 @@ chmod +x "$CLAUDE_DIR/statusline-command.sh"
 # ---------------------------------------------------------------------------
 # 2. Copy settings.json (won't overwrite if it exists — merge manually)
 # ---------------------------------------------------------------------------
-if [ -f "$CLAUDE_DIR/settings.json" ]; then
-    echo "settings.json already exists — leaving it alone. Hooks are merged in separately below."
+# Merged rather than skipped: skipping meant machine settings (model, effort,
+# statusline, plugins, MCP permissions) only ever landed on a brand new machine.
+# The merge preserves every key the base does not declare, and writes a .bak.
+echo "Merging base settings..."
+if command -v node >/dev/null 2>&1; then
+    node "$SCRIPT_DIR/scripts/merge-settings.mjs" || \
+        echo "  [warn] settings merge failed — run: node $SCRIPT_DIR/scripts/merge-settings.mjs"
 else
-    echo "Installing settings.json..."
-    cp "$SCRIPT_DIR/settings-mac.json" "$CLAUDE_DIR/settings.json"
+    echo "  [warn] node not found — skipping settings merge"
 fi
 
 # ---------------------------------------------------------------------------
@@ -159,8 +163,28 @@ cp -R "$SCRIPT_DIR/loop" "$CLAUDE_DIR/loop"
 echo "  [ok] $CLAUDE_DIR/loop"
 # Merges into an existing settings.json rather than skipping it, so hooks land on
 # a machine that is already configured. Pass --with-retro for unattended learning.
+# Invoked from $CLAUDE_DIR, never from $SCRIPT_DIR: hook commands are written
+# relative to the loop.mjs that installs them, so running the repo copy pins the
+# hooks to a clone path that will not exist on the next machine.
 node "$CLAUDE_DIR/loop/loop.mjs" install-hooks ${LOOP_RETRO:+--with-retro} || \
     echo "  [warn] could not install hooks — run: node $CLAUDE_DIR/loop/loop.mjs install-hooks"
+
+# ---------------------------------------------------------------------------
+# MCP servers
+# ---------------------------------------------------------------------------
+echo ""
+echo "Installing MCP servers..."
+if command -v claude >/dev/null 2>&1; then
+    if command -v codegraph >/dev/null 2>&1; then
+        claude mcp add-json --scope user codegraph \
+            '{"type":"stdio","command":"codegraph","args":["serve","--mcp"]}' >/dev/null 2>&1 && \
+            echo "  [ok] codegraph" || echo "  [skip] codegraph already registered"
+    else
+        echo "  [skip] codegraph — binary not on PATH"
+    fi
+else
+    echo "  [skip] claude CLI not found — see mcp/servers.json"
+fi
 
 # ---------------------------------------------------------------------------
 # 4. Copy CLAUDE.md global rules
