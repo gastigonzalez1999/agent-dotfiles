@@ -70,6 +70,13 @@ function Install-ExternalSkill {
     Write-Host "  [skip] $Name already installed"
     return
   }
+  # Something else already provides this skill under its plain name - usually a
+  # symlink into ~/.agents/skills managed by the skills CLI. Installing our own
+  # copy alongside it loads the same skill twice under two names.
+  if (Test-Path -LiteralPath (Join-Path $SkillsDir $Name)) {
+    Write-Host "  [skip] $Name - already provided under its plain name"
+    return
+  }
   $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
   try {
     & git clone --depth=1 "https://github.com/$Repo" $tmp --quiet 2>$null

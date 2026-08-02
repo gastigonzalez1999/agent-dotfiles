@@ -67,6 +67,15 @@ install_skill() {
         return
     fi
 
+    # Something else already provides this skill under its plain name — usually a
+    # symlink into ~/.agents/skills managed by the skills CLI. Installing our own
+    # copy alongside it loads the same skill twice under two names, which is how
+    # ~37 duplicates accumulated here.
+    if [ -e "$SKILLS_DIR/$skill_name" ]; then
+        echo "  [skip] $skill_name — already provided under its plain name"
+        return
+    fi
+
     echo "  Installing $skill_name from $repo..."
     local tmp
     tmp=$(mktemp -d)
