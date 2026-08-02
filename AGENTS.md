@@ -2,6 +2,16 @@
 
 See `CLAUDE.md` for full behavioral guidelines, tech stack, and skill triggers.
 
+# day-to-day workflow
+
+- **catch-up** (`skills/catch-up/SKILL.md`) — where the project stands, from git/PRs/CI. Trigger: "where do we stand", "what's next", "did we finish", resuming after a break.
+- **ship-it** (`skills/ship-it/SKILL.md`) — commit → push → PR → CI → merge → rebase the stack. Trigger: "commit and push", "merge it when green", "rebase all of them".
+- **ci-triage** (`skills/ci-triage/SKILL.md`) — diagnose a failing run and drive it green. Trigger: failing build, pasted CI log.
+- **deploy-ops** (`skills/deploy-ops/SKILL.md`) — Railway/Vercel/Supabase env parity, auto-deploy, migrations, leaked secrets. Trigger: deploy setup or failure, prod ≠ local.
+- **feedback-triage** (`skills/feedback-triage/SKILL.md`) — dedupe/classify a stakeholder feedback dump, draft the reply. Trigger: client feedback, reported-bug list.
+
+Fetch the evidence before answering — never report project state, PR status, or a CI cause from memory.
+
 # qa
 
 - **qa** (`skills/qa/SKILL.md`) — interactive QA session. Trigger: `/qa` or "QA session", "report a bug", "file an issue".

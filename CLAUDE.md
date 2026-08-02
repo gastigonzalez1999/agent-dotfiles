@@ -45,6 +45,16 @@ The verification loop. Machinery is generic and lives in `loop/`; each project d
 
 `loop full` must exit 0 before work is reported as done. A Stop hook enforces this.
 
+# day-to-day workflow
+
+- **catch-up** (`skills/catch-up/SKILL.md`) — reconstruct where a project stands from git, PRs, CI and plan files. Trigger: "where do we stand", "what's next", "did we finish", "where did we leave off", or resuming after time away.
+- **ship-it** (`skills/ship-it/SKILL.md`) — branch → commit → push → PR → watch CI → merge when green → rebase the stack behind it. Trigger: "commit and push", "open a PR", "merge it when green", "rebase all of them", "what's blocking the PRs".
+- **ci-triage** (`skills/ci-triage/SKILL.md`) — pull the failed logs, classify flaky vs environmental vs real, fix, re-verify. Trigger: a failing build or workflow, or a pasted CI log.
+- **deploy-ops** (`skills/deploy-ops/SKILL.md`) — Railway + Vercel + Supabase: env parity, auto-deploy wiring, migrations on deploy, region latency, leaked-credential response. Trigger: deploy setup or failure, prod differing from local, a secret leak.
+- **feedback-triage** (`skills/feedback-triage/SKILL.md`) — turn a stakeholder feedback dump into deduplicated, classified, prioritized items plus a draft reply. Trigger: client or teammate feedback, a reported-bug list, QA notes.
+
+Fetch the evidence before answering — never report project state, PR status, or a CI cause from memory.
+
 # qa
 
 - **qa** (`skills/qa/SKILL.md`) — interactive QA session: user reports bugs, agent files GitHub issues. Trigger: `/qa` or when user mentions "QA session", "report a bug", or "file an issue".
