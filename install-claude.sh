@@ -16,14 +16,12 @@ command -v node >/dev/null 2>&1 || echo "  [warn] node not found — the loop ru
 # ---------------------------------------------------------------------------
 # 1. Copy statusline script
 # ---------------------------------------------------------------------------
+# One script for every OS. It only needs bash, node, git, awk and $HOME, all of
+# which Git Bash provides on Windows. This used to probe for
+# statusline-command-<os>.sh variants that were never written, so the probe
+# always fell through — and the mac copy it fell back to was already portable.
 echo "Installing statusline script..."
-STATUSLINE="$SCRIPT_DIR/statusline-command-mac.sh"
-# Prefer a platform-specific variant when one exists (statusline-command-<os>.sh).
-case "$(uname -s)" in
-    MINGW*|MSYS*|CYGWIN*) [ -f "$SCRIPT_DIR/statusline-command-win.sh" ] && STATUSLINE="$SCRIPT_DIR/statusline-command-win.sh" ;;
-    Linux)                [ -f "$SCRIPT_DIR/statusline-command-linux.sh" ] && STATUSLINE="$SCRIPT_DIR/statusline-command-linux.sh" ;;
-esac
-cp "$STATUSLINE" "$CLAUDE_DIR/statusline-command.sh"
+cp "$SCRIPT_DIR/statusline-command.sh" "$CLAUDE_DIR/statusline-command.sh"
 chmod +x "$CLAUDE_DIR/statusline-command.sh"
 
 # ---------------------------------------------------------------------------

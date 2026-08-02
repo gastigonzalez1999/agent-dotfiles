@@ -95,8 +95,18 @@ It runs commands the repository already declares and checks exit codes. No netwo
 
 | Agent | Install script | What it sets up |
 |-------|---------------|-----------------|
-| [Claude Code](https://claude.ai/code) | `install-claude.sh` | Skills, statusline, settings.json |
-| [Codex](https://openai.com/codex) | `install-codex.sh` | Skills |
+| [Claude Code](https://claude.ai/code) | `install-claude.sh` / `install-claude.ps1` | Skills, statusline, settings, MCP servers, loop hooks |
+| [Codex](https://openai.com/codex) | `install-codex.sh` | Skills, `AGENTS.md`, rules |
+| [Cursor](https://cursor.com) | `cursor-dotfiles`, generated from here | Skills, rules, commands |
+
+Every skill declares who it ships to:
+
+```yaml
+targets: [claude, cursor, codex]   # omit the field and it ships everywhere
+```
+
+The installers filter on it, so Claude does not receive the Cursor-only stack
+skills it already vendors richer versions of from upstream.
 
 ## Quickstart
 
@@ -106,6 +116,15 @@ bash install-claude.sh
 
 # Codex
 bash install-codex.sh
+
+# Cursor: regenerate the output repo, then install from there
+node scripts/sync-to-cursor.mjs ../cursor-dotfiles
+```
+
+On Windows without Git Bash on PATH:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install-claude.ps1
 ```
 
 ## Skills installed
