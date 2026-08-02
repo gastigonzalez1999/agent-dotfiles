@@ -125,3 +125,7 @@ Primary languages and runtimes: **TypeScript** (main), **Python**, **Go**.
 - **Turbo requires `packageManager`**: root `package.json` must have `"packageManager": "npm@x.x.x"` or turbo will warn/fail.
 - **ESLint `@typescript-eslint/no-unused-expressions` v8 bug**: false positives on React patterns — disable rule for web app, not a real error.
 - **Port 5432 conflict**: if local Postgres is running, Docker can't bind 5432. Change docker-compose to 5433 and update `DATABASE_URL`.
+- **`String.replace(needle, value)` corrupts `$&` and `$1`**: any replacement string containing `$` is interpreted as a capture reference, so content gets mangled. Always use the function form: `.replace(needle, () => value)`.
+- **`ConfigModule.validate` timing**: env overrides set inside a test file are often read before the assignment lands. Override the config provider with `overrideProvider` instead of setting `process.env`.
+- **NestJS 11 named wildcard routes don't capture slashes** on the Express adapter — `:path*` stops at the first `/`. Use a regex route or split the segments.
+- **ts-jest + `nodenext`**: needs an explicit commonjs override in the jest transform config, or every import fails to resolve at test time.

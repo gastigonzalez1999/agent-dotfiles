@@ -1,0 +1,41 @@
+---
+description: Review checks for layered backend code — boundaries, DTO validation, external data, tests
+alwaysApply: true
+---
+
+# Backend review checks
+
+Applies when reviewing or writing service-layer code in a layered/DDD backend
+(NestJS, Spring, or similar). These are the checks that catch real defects;
+general style rules live in `toolkit-code-change-discipline`.
+
+## Boundaries
+
+- Controllers receive and respond. Business logic belongs in services, decisions
+  in the domain.
+- A service must not contain mapping logic that belongs to another service.
+  Duplicated mapping across services is a sign the seam is in the wrong place.
+- The domain layer must not depend on infrastructure. Application orchestrates
+  use cases; infrastructure implements the interfaces the domain declares.
+- No provider leakage: a third-party SDK's types must not appear in a domain
+  signature. Port and adapter, always.
+
+## Contracts
+
+- DTO validation lives inside the DTO class, not scattered through the service.
+- No unnecessary fields on responses — check for leaked internals
+  (`createdAt`, `isActive`, password hashes, tenant ids) before approving.
+
+## External data
+
+- Validate everything that crosses a process boundary.
+- Assume external providers return null for fields they document as required.
+- Structured error handling, and never a silent fallback — a swallowed error
+  becomes an unreproducible bug report later.
+
+## Tests
+
+- New behavior ships with tests covering the happy path and the edge cases
+  (null, undefined, empty collections, concurrency).
+- Cover what touches money, state transitions, and business rules well. Do not
+  chase a coverage percentage.
