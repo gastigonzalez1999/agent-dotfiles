@@ -50,3 +50,14 @@ When triggered, gather diff + changed files, then apply the skill rubric.
 - Define verifiable success criteria and check them before finishing.
 - When corrected, re-read the user's message and confirm before proceeding.
 - When stuck, summarize attempts and ask for guidance.
+
+## Cursor Cloud specific instructions
+
+This repo is pure Bash install scripts + Markdown skills. There is no package manager, build step, or automated test suite, so the update script is a no-op. Required system tools (`bash`, `git`, `rsync`, `node`, `python3`, `awk`, `shellcheck`) are already present on the VM.
+
+- **Lint**: `shellcheck install-claude.sh install-codex.sh statusline-command-mac.sh`. The only remaining finding is one intentional `SC2016` (info) on the instructional `echo` at the end of `install-claude.sh` — leave it.
+- **Run the statusline app**: pipe Claude Code JSON into it, e.g. `echo '{"model":{"display_name":"Claude Opus 4.8"},"session_id":"s1","context_window":{"used_percentage":42},"cost":{"total_cost_usd":0.12}}' | bash statusline-command-mac.sh`. It uses `node` (not `jq`) to parse the JSON.
+- **Run the Claude installer**: `bash install-claude.sh` writes to `$HOME/.claude` (statusline, `settings.json`, and skills). To test without touching your real config, set `HOME` to a temp dir first, e.g. `HOME=$(mktemp -d) bash install-claude.sh`.
+- **Gotcha — installer needs `~/.claude` to pre-exist**: `install-claude.sh` copies the statusline + `settings.json` before it runs `mkdir -p` for the skills dir. On a brand-new `HOME` with no `~/.claude`, those two `cp` calls fail (skills still install). Real machines already have `~/.claude` from Claude Code; when testing against a temp `HOME`, `mkdir -p "$HOME/.claude"` first.
+- **Gotcha — Codex installer needs Codex**: `install-codex.sh` requires `~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py` (created by the Codex CLI). Without Codex installed it exits early with a clear message — expected on this VM.
+- **Installers hit GitHub**: most skills clone fine; a few `[fail]` entries (e.g. moved upstream subfolders) are pre-existing and non-fatal. The custom-skills sync at the end is offline (`rsync` from this repo's `skills/`).
