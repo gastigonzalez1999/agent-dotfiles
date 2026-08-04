@@ -40,6 +40,12 @@ known_skills() {
     grep -hE '^install_skill(_repo_root)? ' "$SCRIPT_DIR/install-claude.sh" 2>/dev/null \
       | awk '{ gsub(/"/,""); print $NF }'
   fi
+  # Declared for the skills.sh CLI inside install-claude.sh, as `pkg|a,b,c` lines
+  # in the install_cli_skills heredoc rather than as install_skill calls.
+  if [ -f "$SCRIPT_DIR/install-claude.sh" ]; then
+    grep -hE '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\|' "$SCRIPT_DIR/install-claude.sh" 2>/dev/null \
+      | cut -d'|' -f2 | tr ',' '\n' | grep -v '^\*\?$'
+  fi
   # Installed by the skills.sh CLI; its lockfiles are the record of what landed.
   for lock in "$AGENTS_STORE/.skill-lock.json" "$CLAUDE_DIR/skills/skills-lock.json"; do
     [ -f "$lock" ] && command -v jq >/dev/null 2>&1 && jq -r '.skills | keys[]' "$lock" 2>/dev/null
@@ -196,6 +202,15 @@ else
     [ -z "$s" ] && continue
     [ -d "$SCRIPT_DIR/skills/$s" ] && continue
     grep -qE "^install_skill(_repo_root)? .*\"$s\"" "$SCRIPT_DIR/install-claude.sh" 2>/dev/null && continue
+    # Named in the install_cli_skills heredoc?
+    grep -hE '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\|' "$SCRIPT_DIR/install-claude.sh" 2>/dev/null \
+      | cut -d'|' -f2 | tr ',' '\n' | grep -qx "$s" && continue
+    # Or covered by a package declared with `*`, which installs every skill it has —
+    # so the names cannot be enumerated and the source repo is what to match on.
+    src=$(jq -r --arg k "$s" '.skills[$k].source // empty' "$LOCK" 2>/dev/null)
+    if [ -n "$src" ] && grep -qE "^${src//\//\\/}\|\*$" "$SCRIPT_DIR/install-claude.sh" 2>/dev/null; then
+      continue
+    fi
     note "$s — installed via skills.sh, nothing in the repo reinstalls it"
     undeclared=1
   done < <(jq -r '.skills | keys[]' "$LOCK" 2>/dev/null)
