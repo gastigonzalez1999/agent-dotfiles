@@ -37,13 +37,23 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 The verification loop. Machinery is generic and lives in `loop/`; each project declares its own checks in `.agent/loop.json`.
 
-- **inner-loop** (`skills/inner-loop/SKILL.md`) — verify your own work and iterate to green. Use after any non-trivial edit and before claiming done. **Supersedes `fix-and-verify`, `fix-ts-errors`, `verify-stack`.**
+- **inner-loop** (`skills/inner-loop/SKILL.md`) — verify your own work and iterate to green. Use after any non-trivial edit and before claiming done.
 - **loop-init** (`skills/loop-init/SKILL.md`) — create or repair a project's `.agent/loop.json`. Trigger: repo has no contract, or its checks are wrong.
 - **outer-loop** (`skills/outer-loop/SKILL.md`) — the macro cycle (understand → plan → implement → verify → review → hand off). Trigger: any work spanning more than a couple of files.
 - **loop-autonomous** (`skills/loop-autonomous/SKILL.md`) — grind unattended toward a machine-checkable stop condition. Trigger: "get the tests passing", "make the build green".
 - **loop-retro** (`skills/loop-retro/SKILL.md`) — turn run history into rules. Runs automatically; invoke to audit or revert.
 
 `loop full` must exit 0 before work is reported as done. A Stop hook enforces this.
+
+# day-to-day workflow
+
+- **catch-up** (`skills/catch-up/SKILL.md`) — reconstruct where a project stands from git, PRs, CI and plan files. Trigger: "where do we stand", "what's next", "did we finish", "where did we leave off", or resuming after time away.
+- **ship-it** (`skills/ship-it/SKILL.md`) — branch → commit → push → PR → watch CI → merge when green → rebase the stack behind it. Trigger: "commit and push", "open a PR", "merge it when green", "rebase all of them", "what's blocking the PRs".
+- **ci-triage** (`skills/ci-triage/SKILL.md`) — pull the failed logs, classify flaky vs environmental vs real, fix, re-verify. Trigger: a failing build or workflow, or a pasted CI log.
+- **deploy-ops** (`skills/deploy-ops/SKILL.md`) — Railway + Vercel + Supabase: env parity, auto-deploy wiring, migrations on deploy, region latency, leaked-credential response. Trigger: deploy setup or failure, prod differing from local, a secret leak.
+- **feedback-triage** (`skills/feedback-triage/SKILL.md`) — turn a stakeholder feedback dump into deduplicated, classified, prioritized items plus a draft reply. Trigger: client or teammate feedback, a reported-bug list, QA notes.
+
+Fetch the evidence before answering — never report project state, PR status, or a CI cause from memory.
 
 # qa
 
@@ -125,3 +135,7 @@ Primary languages and runtimes: **TypeScript** (main), **Python**, **Go**.
 - **Turbo requires `packageManager`**: root `package.json` must have `"packageManager": "npm@x.x.x"` or turbo will warn/fail.
 - **ESLint `@typescript-eslint/no-unused-expressions` v8 bug**: false positives on React patterns — disable rule for web app, not a real error.
 - **Port 5432 conflict**: if local Postgres is running, Docker can't bind 5432. Change docker-compose to 5433 and update `DATABASE_URL`.
+- **`String.replace(needle, value)` corrupts `$&` and `$1`**: any replacement string containing `$` is interpreted as a capture reference, so content gets mangled. Always use the function form: `.replace(needle, () => value)`.
+- **`ConfigModule.validate` timing**: env overrides set inside a test file are often read before the assignment lands. Override the config provider with `overrideProvider` instead of setting `process.env`.
+- **NestJS 11 named wildcard routes don't capture slashes** on the Express adapter — `:path*` stops at the first `/`. Use a regex route or split the segments.
+- **ts-jest + `nodenext`**: needs an explicit commonjs override in the jest transform config, or every import fails to resolve at test time.

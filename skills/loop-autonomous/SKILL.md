@@ -1,6 +1,7 @@
 ---
 name: loop-autonomous
 description: Grind unattended toward a goal until a machine-checkable stop condition is met. Use when the user states a goal once and does not want to babysit the iterations — "get the tests passing", "make the build green", "fix all the type errors".
+targets: [claude, cursor, codex]
 ---
 
 # Autonomous loop

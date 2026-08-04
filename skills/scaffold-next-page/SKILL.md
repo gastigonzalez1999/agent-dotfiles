@@ -1,6 +1,7 @@
 ---
 name: scaffold-next-page
 description: Generate a complete Next.js page with its feature folder: Zustand store, API client, page component, and sub-components. Use when the user asks to create a new page, route, or frontend feature.
+targets: [claude, cursor, codex]
 ---
 
 # Scaffold Next.js Page

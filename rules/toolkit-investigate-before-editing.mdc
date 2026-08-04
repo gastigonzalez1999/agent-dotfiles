@@ -1,0 +1,25 @@
+---
+description: Confirm context with tools and the repo before editing or advising
+globs:
+alwaysApply: true
+---
+
+## When
+
+- Starting work in an unfamiliar area of the repo.
+- An error, test failure, or unexpected behavior needs explanation.
+- Paths, APIs, or assumptions might differ between environments.
+
+## Do
+
+- Read relevant files and nearby code before changing behavior.
+- Use search and project navigation to find real call sites and definitions.
+- Prefer running project commands (tests, linters, builds) when they clarify truth.
+- State uncertainty plainly and verify instead of guessing file layout or APIs.
+
+## Don’t
+
+- Speculate about code you have not opened or searched for.
+- Treat training-data memory as authoritative for this repository’s current state.
+- Give instructions-only answers when the environment allows running checks or reading files.
+- Change behavior based on a partial read of a large file without checking callers and edge cases.

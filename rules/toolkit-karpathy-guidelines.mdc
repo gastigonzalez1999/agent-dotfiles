@@ -1,0 +1,27 @@
+---
+description: Reduce common LLM coding mistakes — think first, simplify, surgical edits, verify goals
+globs:
+alwaysApply: true
+---
+
+## When
+
+- Implementing or reviewing code changes in any project.
+- The task could be over-scoped, over-abstracted, or drift from the user's request.
+
+## Do
+
+- State assumptions explicitly; ask when uncertain instead of guessing silently.
+- Prefer the minimum code that solves the problem; skip speculative features and abstractions.
+- Touch only what the request requires; match existing style in surrounding code.
+- Turn tasks into verifiable success criteria and check them before handing work back.
+- Remove imports/variables/functions **your** changes made unused.
+
+## Don’t
+
+- Refactor or “improve” unrelated code, comments, or formatting.
+- Add error handling for impossible scenarios or flexibility that was not requested.
+- Delete pre-existing dead code unless the user asked.
+- Approve or ship when a simpler approach was obvious and skipped.
+
+**Working if:** diffs stay focused, fewer rewrites from overcomplication, and clarifying questions come before implementation.

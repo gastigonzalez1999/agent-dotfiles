@@ -1,6 +1,7 @@
 ---
 name: new-fullstack-project
 description: Scaffold a new NestJS + Next.js Turborepo monorepo from scratch: root configs, docker-compose, shared types, env files, and CI. Use when starting a greenfield full-stack project.
+targets: [claude, cursor, codex]
 ---
 
 # New Fullstack Project
@@ -63,4 +64,4 @@ Scaffold a complete NestJS + Next.js Turborepo monorepo. Ask for the project nam
 2. `docker compose up -d`
 3. `cd apps/api && npx prisma migrate dev --name init`
 4. `npm run dev` from root via turbo
-5. Run `/verify-stack` to confirm everything is healthy
+5. Run `loop doctor` to confirm everything is healthy

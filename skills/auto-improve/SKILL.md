@@ -3,6 +3,7 @@ name: auto-improve
 description: >-
   Review recent work for repeated manual workflows worth packaging into skills,
   subagents, or automations. Create only high-confidence missing items.
+targets: [claude, cursor, codex]
 ---
 
 # Auto-improve

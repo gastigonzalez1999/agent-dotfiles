@@ -1,6 +1,7 @@
 ---
 name: build-backend-phases
 description: Execute a multi-phase backend build plan: read the plan file, generate all files in parallel batches, run tsc after each phase, and verify tests pass at the end. Use when building out a large NestJS backend from a plan.
+targets: [claude, cursor, codex]
 ---
 
 # Build Backend Phases
@@ -41,7 +42,7 @@ next build                          # confirm compilable
 
 ### 4. Fix any errors before declaring done
 
-Use `/fix-ts-errors` pattern for any TypeScript failures.
+Use the `inner-loop` skill for any TypeScript failures — it runs this repo's own typecheck from `.agent/loop.json`.
 
 ## Parallel agent strategy
 

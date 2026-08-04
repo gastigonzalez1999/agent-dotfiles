@@ -7,6 +7,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CODEX_SKILLS_DIR="${CODEX_HOME:-$HOME/.codex}/skills"
 INSTALLER="$HOME/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py"
 
+# Each skill declares who it ships to via `targets:` frontmatter. A skill with
+# no `targets:` line ships everywhere, so older skills keep working.
+targets_include() {
+    local skill_md="$1/SKILL.md" harness="$2" line
+    [ -f "$skill_md" ] || return 1
+    line=$(grep -m1 '^targets:' "$skill_md" 2>/dev/null) || return 0
+    case "$line" in *"$harness"*) return 0 ;; *) return 1 ;; esac
+}
+
 # Detect Python (handles python3 on Linux/Mac, python on Windows)
 if command -v python3 &>/dev/null; then
     PYTHON="python3"
@@ -147,9 +156,24 @@ mkdir -p "$CODEX_SKILLS_DIR"
 for src in "$SCRIPT_DIR/skills"/*/; do
     [[ -d "$src" ]] || continue
     name="$(basename "$src")"
-    rsync -a "$src" "$CODEX_SKILLS_DIR/$name/"
+    targets_include "$src" codex || { echo "  [skip] $name — not targeted at codex"; continue; }
+    # rsync is absent on Windows; cp -R after a clean removal is equivalent here.
+    rm -rf "${CODEX_SKILLS_DIR:?}/$name"
+    cp -R "$src" "$CODEX_SKILLS_DIR/$name"
     echo "  [ok] $name"
 done
+
+# --- Global instructions + rules ---
+# Previously unversioned: a new machine got the skills but none of the rules
+# that tell Codex when to use them.
+CODEX_DIR="${CODEX_HOME:-$HOME/.codex}"
+echo ""
+echo "Global instructions:"
+cp "$SCRIPT_DIR/codex/AGENTS.md" "$CODEX_DIR/AGENTS.md"
+echo "  [ok] AGENTS.md"
+mkdir -p "$CODEX_DIR/rules"
+cp "$SCRIPT_DIR/codex/default.rules" "$CODEX_DIR/rules/default.rules"
+echo "  [ok] rules/default.rules"
 
 echo ""
 echo "Done! Skills installed to $CODEX_SKILLS_DIR"

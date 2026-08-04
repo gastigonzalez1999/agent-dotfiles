@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 # Claude Code dotfiles setup script
-# Usage: bash install-claude.sh
+# Usage: bash install-claude.sh [--skip-external]
+#   --skip-external   custom skills, settings and hooks only; no GitHub clones.
+#                     Fast, offline, and what a fresh-machine test wants.
 # Run this on any new machine to replicate your Claude Code setup.
+
+SKIP_EXTERNAL=0
+for arg in "$@"; do
+    case "$arg" in
+        --skip-external) SKIP_EXTERNAL=1 ;;
+        -h|--help) echo "Usage: bash install-claude.sh [--skip-external]"; exit 0 ;;
+        *) echo "Unknown option: $arg"; exit 2 ;;
+    esac
+done
 
 CLAUDE_DIR="$HOME/.claude"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,24 +27,26 @@ command -v node >/dev/null 2>&1 || echo "  [warn] node not found — the loop ru
 # ---------------------------------------------------------------------------
 # 1. Copy statusline script
 # ---------------------------------------------------------------------------
+# One script for every OS. It only needs bash, node, git, awk and $HOME, all of
+# which Git Bash provides on Windows. This used to probe for
+# statusline-command-<os>.sh variants that were never written, so the probe
+# always fell through — and the mac copy it fell back to was already portable.
 echo "Installing statusline script..."
-STATUSLINE="$SCRIPT_DIR/statusline-command-mac.sh"
-# Prefer a platform-specific variant when one exists (statusline-command-<os>.sh).
-case "$(uname -s)" in
-    MINGW*|MSYS*|CYGWIN*) [ -f "$SCRIPT_DIR/statusline-command-win.sh" ] && STATUSLINE="$SCRIPT_DIR/statusline-command-win.sh" ;;
-    Linux)                [ -f "$SCRIPT_DIR/statusline-command-linux.sh" ] && STATUSLINE="$SCRIPT_DIR/statusline-command-linux.sh" ;;
-esac
-cp "$STATUSLINE" "$CLAUDE_DIR/statusline-command.sh"
+cp "$SCRIPT_DIR/statusline-command.sh" "$CLAUDE_DIR/statusline-command.sh"
 chmod +x "$CLAUDE_DIR/statusline-command.sh"
 
 # ---------------------------------------------------------------------------
 # 2. Copy settings.json (won't overwrite if it exists — merge manually)
 # ---------------------------------------------------------------------------
-if [ -f "$CLAUDE_DIR/settings.json" ]; then
-    echo "settings.json already exists — leaving it alone. Hooks are merged in separately below."
+# Merged rather than skipped: skipping meant machine settings (model, effort,
+# statusline, plugins, MCP permissions) only ever landed on a brand new machine.
+# The merge preserves every key the base does not declare, and writes a .bak.
+echo "Merging base settings..."
+if command -v node >/dev/null 2>&1; then
+    node "$SCRIPT_DIR/scripts/merge-settings.mjs" || \
+        echo "  [warn] settings merge failed — run: node $SCRIPT_DIR/scripts/merge-settings.mjs"
 else
-    echo "Installing settings.json..."
-    cp "$SCRIPT_DIR/settings-mac.json" "$CLAUDE_DIR/settings.json"
+    echo "  [warn] node not found — skipping settings merge"
 fi
 
 # ---------------------------------------------------------------------------
@@ -43,7 +56,20 @@ echo "Installing skills..."
 SKILLS_DIR="$CLAUDE_DIR/skills"
 mkdir -p "$SKILLS_DIR"
 
+# Each skill declares who it ships to via `targets:` frontmatter. Claude skips
+# the Cursor-only stack docs (nestjs, docker, prisma…) because it already gets
+# richer vendored equivalents from upstream repos below. A skill with no
+# `targets:` line ships everywhere, so older skills keep working.
+targets_include() {
+    local skill_md="$1/SKILL.md" harness="$2" line
+    [ -f "$skill_md" ] || return 1
+    line=$(grep -m1 '^targets:' "$skill_md" 2>/dev/null) || return 0
+    case "$line" in *"$harness"*) return 0 ;; *) return 1 ;; esac
+}
+
 install_skill() {
+    [ "$SKIP_EXTERNAL" -eq 1 ] && return 0
+
     local repo="$1"
     local subfolder="$2"
     local skill_name="$3"
@@ -51,6 +77,15 @@ install_skill() {
 
     if [ -d "$target" ]; then
         echo "  [skip] $skill_name already installed"
+        return
+    fi
+
+    # Something else already provides this skill under its plain name — usually a
+    # symlink into ~/.agents/skills managed by the skills CLI. Installing our own
+    # copy alongside it loads the same skill twice under two names, which is how
+    # ~37 duplicates accumulated here.
+    if [ -e "$SKILLS_DIR/$skill_name" ]; then
+        echo "  [skip] $skill_name — already provided under its plain name"
         return
     fi
 
@@ -132,6 +167,9 @@ mkdir -p "$SKILLS_DIR"
 for skill_dir in "$SCRIPT_DIR"/skills/*/; do
     [ -d "$skill_dir" ] || continue
     name=$(basename "$skill_dir")
+    # Skipped skills are left alone rather than removed: a same-named skill here
+    # may be a symlink the user installed from elsewhere.
+    targets_include "$skill_dir" claude || { echo "  [skip] $name — not targeted at claude"; continue; }
     rm -rf "$SKILLS_DIR/$name"
     cp -R "$skill_dir" "$SKILLS_DIR/$name"
 done
@@ -145,8 +183,28 @@ cp -R "$SCRIPT_DIR/loop" "$CLAUDE_DIR/loop"
 echo "  [ok] $CLAUDE_DIR/loop"
 # Merges into an existing settings.json rather than skipping it, so hooks land on
 # a machine that is already configured. Pass --with-retro for unattended learning.
+# Invoked from $CLAUDE_DIR, never from $SCRIPT_DIR: hook commands are written
+# relative to the loop.mjs that installs them, so running the repo copy pins the
+# hooks to a clone path that will not exist on the next machine.
 node "$CLAUDE_DIR/loop/loop.mjs" install-hooks ${LOOP_RETRO:+--with-retro} || \
     echo "  [warn] could not install hooks — run: node $CLAUDE_DIR/loop/loop.mjs install-hooks"
+
+# ---------------------------------------------------------------------------
+# MCP servers
+# ---------------------------------------------------------------------------
+echo ""
+echo "Installing MCP servers..."
+if command -v claude >/dev/null 2>&1; then
+    if command -v codegraph >/dev/null 2>&1; then
+        claude mcp add-json --scope user codegraph \
+            '{"type":"stdio","command":"codegraph","args":["serve","--mcp"]}' >/dev/null 2>&1 && \
+            echo "  [ok] codegraph" || echo "  [skip] codegraph already registered"
+    else
+        echo "  [skip] codegraph — binary not on PATH"
+    fi
+else
+    echo "  [skip] claude CLI not found — see mcp/servers.json"
+fi
 
 # ---------------------------------------------------------------------------
 # 4. Copy CLAUDE.md global rules
@@ -163,5 +221,4 @@ echo ""
 echo "Done! Skills installed to $SKILLS_DIR"
 echo "Statusline script: $CLAUDE_DIR/statusline-command.sh"
 echo ""
-echo "If settings.json was skipped, add this to $CLAUDE_DIR/settings.json:"
-echo '  "statusLine": { "type": "command", "command": "bash $HOME/.claude/statusline-command.sh" }'
+echo "Restart Claude Code to pick up the new skills and settings."

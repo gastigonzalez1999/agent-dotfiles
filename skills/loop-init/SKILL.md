@@ -1,6 +1,7 @@
 ---
 name: loop-init
 description: Create or repair a project's .agent/loop.json verification contract. Use when a repo has no contract, when its checks are wrong or stale, or before setting up the loop in a new project.
+targets: [claude, cursor, codex]
 ---
 
 # Loop init

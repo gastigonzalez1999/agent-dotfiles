@@ -9,3 +9,7 @@
 *.json  text eol=lf
 *.md    text eol=lf
 *.mdc   text eol=lf
+
+# PowerShell is the exception: Windows PowerShell 5.1 can choke on LF-only
+# scripts, and these only ever run on Windows anyway.
+*.ps1   text eol=crlf

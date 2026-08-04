@@ -1,6 +1,7 @@
 ---
 name: scaffold-nestjs-module
 description: Generate a complete NestJS module with controller, service, repository, DTOs, guards, and Jest spec files. Use when the user asks to create a new NestJS module, feature, or domain entity.
+targets: [claude, cursor, codex]
 ---
 
 # Scaffold NestJS Module

@@ -1,0 +1,24 @@
+---
+description: How to reference code and keep replies useful without noise
+globs:
+alwaysApply: true
+---
+
+## When
+
+- Answering questions about implementation, reviewing changes, or explaining behavior.
+- Showing existing code the user can open in the editor.
+
+## Do
+
+- Use fenced code citations with line ranges and paths when pointing at repo code.
+- Use ordinary fenced blocks for new or proposed snippets meant for copy-paste.
+- Put the opening fence alone on its own line; keep cited blocks focused (ellipsis for skips).
+- Match explanation depth to task complexity; prefer precise, readable prose.
+- Honor explicit format constraints (bullets, line limits, filenames) when the user sets them.
+
+## Don’t
+
+- Paste large unrelated files or narrate every identifier when a short citation suffices.
+- Use decorative bold or backticks everywhere; reserve emphasis for real ambiguity.
+- Drift into methodology essays, evidence dumps, or filler when a direct answer works.

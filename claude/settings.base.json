@@ -1,0 +1,64 @@
+{
+  "model": "opus",
+  "effortLevel": "high",
+  "theme": "dark-ansi",
+  "autoUpdatesChannel": "latest",
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/statusline-command.sh"
+  },
+  "env": {
+    "CLAUDE_CODE_NO_FLICKER": "1",
+    "PYTHONUTF8": "1"
+  },
+  "permissions": {
+    "allow": [
+      "mcp__codegraph__codegraph_search",
+      "mcp__codegraph__codegraph_context",
+      "mcp__codegraph__codegraph_callers",
+      "mcp__codegraph__codegraph_callees",
+      "mcp__codegraph__codegraph_impact",
+      "mcp__codegraph__codegraph_node",
+      "mcp__codegraph__codegraph_status"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "autoskills -y 2>/dev/null || true",
+            "statusMessage": "Auto-installing project skills...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "andrej-karpathy-skills@karpathy-skills": true,
+    "claude-mem@thedotmack": false
+  },
+  "extraKnownMarketplaces": {
+    "karpathy-skills": {
+      "source": {
+        "source": "github",
+        "repo": "forrestchang/andrej-karpathy-skills"
+      }
+    },
+    "thedotmack": {
+      "source": {
+        "source": "github",
+        "repo": "thedotmack/claude-mem"
+      }
+    }
+  },
+  "voice": {
+    "enabled": true,
+    "mode": "hold"
+  },
+  "voiceEnabled": true,
+  "remoteControlAtStartup": true,
+  "agentPushNotifEnabled": true
+}
