@@ -274,7 +274,8 @@ for skill_dir in "$SCRIPT_DIR"/skills/*/; do
     # Skipped skills are left alone rather than removed: a same-named skill here
     # may be a symlink the user installed from elsewhere.
     targets_include "$skill_dir" claude || { echo "  [skip] $name — not targeted at claude"; continue; }
-    rm -rf "$SKILLS_DIR/$name"
+    # `:?` aborts on an empty SKILLS_DIR rather than expanding to `rm -rf /$name`.
+    rm -rf "${SKILLS_DIR:?}/$name"
     cp -R "$skill_dir" "$SKILLS_DIR/$name"
 done
 echo "  [ok] synced $SCRIPT_DIR/skills/ -> $SKILLS_DIR/"
@@ -282,7 +283,7 @@ echo "  [ok] synced $SCRIPT_DIR/skills/ -> $SKILLS_DIR/"
 # --- Verification loop runner + enforcement hooks ---
 echo ""
 echo "Installing the loop runner..."
-rm -rf "$CLAUDE_DIR/loop"
+rm -rf "${CLAUDE_DIR:?}/loop"
 cp -R "$SCRIPT_DIR/loop" "$CLAUDE_DIR/loop"
 echo "  [ok] $CLAUDE_DIR/loop"
 # Merges into an existing settings.json rather than skipping it, so hooks land on
