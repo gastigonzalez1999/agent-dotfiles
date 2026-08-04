@@ -171,9 +171,11 @@ echo ""
 echo "Global instructions:"
 cp "$SCRIPT_DIR/codex/AGENTS.md" "$CODEX_DIR/AGENTS.md"
 echo "  [ok] AGENTS.md"
-mkdir -p "$CODEX_DIR/rules"
-cp "$SCRIPT_DIR/codex/default.rules" "$CODEX_DIR/rules/default.rules"
-echo "  [ok] rules/default.rules"
+# rules/default.rules is deliberately NOT shipped. It is Codex's approval cache,
+# not configuration: every entry is a literal command someone approved on one
+# machine, so it accumulates local paths, filenames and URLs from real sessions.
+# It is machine-local by nature, and copying it here would also clobber the
+# approvals the target machine has built up.
 
 echo ""
 echo "Done! Skills installed to $CODEX_SKILLS_DIR"

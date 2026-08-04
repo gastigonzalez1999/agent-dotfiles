@@ -74,8 +74,17 @@ if (JSON.stringify(current) === before) {
 }
 
 if (dryRun) {
-  console.log(`Would update ${settingsPath}:`);
-  console.log(JSON.stringify(current, null, 2));
+  // Names the keys that would change, never their values. The merged object
+  // carries forward whatever the local file already had — API tokens under
+  // `env`, machine paths — and --dry-run is precisely the command someone runs
+  // in a shared terminal or pastes into an issue.
+  const original = JSON.parse(before);
+  const touched = Object.keys(base).filter(
+    (key) => JSON.stringify(current[key]) !== JSON.stringify(original[key]),
+  );
+  console.log(`Would update ${settingsPath}`);
+  for (const key of touched) console.log(`  ${key in original ? 'update' : 'add'}   ${key}`);
+  if (!touched.length) console.log('  (no changes)');
   process.exit(0);
 }
 
