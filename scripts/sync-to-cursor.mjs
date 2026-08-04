@@ -119,6 +119,16 @@ for (const file of readdirSync(join(REPO, 'cursor', 'commands'))) {
   cpSync(join(REPO, 'cursor', 'commands', file), join(stage, 'commands', file));
 }
 
+// Subagents live under ~/.cursor/agents. Cursor-only: they are dispatched by a
+// parent via Task, which has no equivalent in the other harnesses, so there is no
+// `targets:` filtering to do here — everything in cursor/agents/ ships.
+mkdirSync(join(stage, 'agents'), { recursive: true });
+if (existsSync(join(REPO, 'cursor', 'agents'))) {
+  for (const file of readdirSync(join(REPO, 'cursor', 'agents'))) {
+    cpSync(join(REPO, 'cursor', 'agents', file), join(stage, 'agents', file));
+  }
+}
+
 // The runner itself ships too — a rule telling the agent to run `loop` is
 // useless on a machine where nothing provides it.
 cpSync(join(REPO, 'loop'), join(stage, 'loop'), { recursive: true });
@@ -127,7 +137,7 @@ cpSync(join(REPO, 'loop'), join(stage, 'loop'), { recursive: true });
 // Diff staging against the target.
 // ---------------------------------------------------------------------------
 
-const MANAGED = ['skills', 'rules', 'commands', 'loop'];
+const MANAGED = ['skills', 'rules', 'commands', 'agents', 'loop'];
 const changes = [];
 
 for (const dir of MANAGED) {
@@ -167,10 +177,15 @@ if (!changes.length) {
 for (const [kind, path] of changes) console.log(`  [${kind}] ${path}`);
 
 if (dryRun) {
-  console.log(`\nWould sync ${shipping.length} skills + ${readdirSync(join(stage, 'rules')).length} rules + runner to ${target}`);
+  console.log(`\nWould sync ${shipping.length} skills + ${readdirSync(join(stage, 'rules')).length} rules + ${readdirSync(join(stage, 'agents')).length} agents + runner to ${target}`);
   rmSync(stage, { recursive: true, force: true });
   process.exit(0);
 }
+
+// Counted before the staging directory is removed below — reading it afterwards
+// throws, and the throw lands after the copy has already succeeded, so the sync
+// looks broken while actually having worked.
+const agentCount = readdirSync(join(stage, 'agents')).length;
 
 // Replace wholesale: the target is output, so stale files must not survive.
 for (const dir of MANAGED) {
@@ -180,7 +195,7 @@ for (const dir of MANAGED) {
 rmSync(stage, { recursive: true, force: true });
 
 const skipped = all.length - shipping.length;
-console.log(`\nSynced ${shipping.length} skills + rules + runner to ${target}`);
+console.log(`\nSynced ${shipping.length} skills + rules + ${agentCount} agents + runner to ${target}`);
 console.log(`(${skipped} skill(s) not targeted at cursor)`);
 console.log('Commit in cursor-dotfiles, then re-run its installer with --force.\n');
 
