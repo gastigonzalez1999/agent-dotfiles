@@ -178,13 +178,26 @@ fi
 
 # ---------------------------------------------------------------------------
 section "Global CLAUDE.md drift"
+MACHINE_LOCAL_MARKER='<!-- machine-local:'
 if [ ! -f "$CLAUDE_DIR/CLAUDE.md" ]; then
   clean "no global CLAUDE.md"
 elif diff -q "$SCRIPT_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md" >/dev/null 2>&1; then
   clean "CLAUDE.md identical to repo"
 else
-  note "CLAUDE.md differs from the repo — review:"
-  echo "      diff $SCRIPT_DIR/CLAUDE.md $CLAUDE_DIR/CLAUDE.md"
+  # A machine may legitimately append work-project specifics that must not reach a
+  # public repo. Everything from the marker down is expected divergence; compare
+  # only the part above it, so real drift in the shared body still surfaces.
+  stripped=$(mktemp)
+  sed "/${MACHINE_LOCAL_MARKER}/,\$d" "$CLAUDE_DIR/CLAUDE.md" \
+    | sed -e :a -e '/^\n*$/{$d;N;};/\n$/ba' > "$stripped"
+  if diff -q "$SCRIPT_DIR/CLAUDE.md" "$stripped" >/dev/null 2>&1; then
+    n=$(sed -n "/${MACHINE_LOCAL_MARKER}/,\$p" "$CLAUDE_DIR/CLAUDE.md" | wc -l | tr -d ' ')
+    info "CLAUDE.md matches the repo, plus a $n-line machine-local section (expected)"
+  else
+    note "CLAUDE.md differs from the repo above the machine-local marker — review:"
+    echo "      diff $SCRIPT_DIR/CLAUDE.md $CLAUDE_DIR/CLAUDE.md"
+  fi
+  rm -f "$stripped"
 fi
 
 # ---------------------------------------------------------------------------
