@@ -130,6 +130,23 @@ hand-edited setting, or a package installed by the skills.sh CLI stayed invisibl
 until the next machine came up missing it. It is read-only — every finding is
 yours to decide about. Run it before committing.
 
+### Keeping something off a public repo
+
+This repo is public, so anything naming a private repo, an internal hostname, or a
+client's project structure does not belong in it. For a machine that needs those
+locally, append them to `~/.claude/CLAUDE.md` below a marker comment:
+
+```markdown
+<!-- machine-local: not in agent-dotfiles. -->
+
+# Machine-local: <what and why>
+```
+
+`sync-up.sh` compares only the part above the marker, so the shared body is still
+checked for real drift while everything below is reported as expected. Nothing is
+required to be secret for this to be worth using — it is also the right home for
+per-machine port numbers and paths that would be noise for everyone else.
+
 On Windows without Git Bash on PATH:
 
 ```powershell

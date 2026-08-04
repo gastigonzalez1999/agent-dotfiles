@@ -50,7 +50,15 @@ known_skills() {
   for lock in "$AGENTS_STORE/.skill-lock.json" "$CLAUDE_DIR/skills/skills-lock.json"; do
     [ -f "$lock" ] && command -v jq >/dev/null 2>&1 && jq -r '.skills | keys[]' "$lock" 2>/dev/null
   done
+  # Installed by their own npm CLI rather than by name, and regenerated on upgrade,
+  # so the installed folder is the only place the name appears.
+  grep -q '@aidesigner/agent-skills' "$SCRIPT_DIR/install-claude.sh" 2>/dev/null && echo "aidesigner-frontend"
 }
+
+# Skills that deliberately live in a private channel and are NOT mirrored into this
+# public repo. Present on a work machine, absent on a personal one — either is
+# correct, so they are reported as context rather than as drift.
+WORK_ONLY="security-audit"
 
 # ---------------------------------------------------------------------------
 section "Skills on the machine but unaccounted for by the repo"
@@ -60,12 +68,22 @@ if [ -d "$CLAUDE_DIR/skills" ]; then
          -exec basename {} \; | sed 's/@$//' | sort -u)
   known=$(known_skills | sed 's/@$//' | grep -v '^$' | sort -u)
   missing=$(comm -23 <(echo "$live") <(echo "$known"))
+  unexpected=0
   if [ -n "$missing" ]; then
-    while read -r s; do [ -n "$s" ] && note "skill: $s"; done <<< "$missing"
+    while read -r s; do
+      [ -z "$s" ] && continue
+      if echo " $WORK_ONLY " | grep -q " $s "; then
+        info "$s  (private channel — deliberately not mirrored here)"
+      else
+        note "skill: $s"; unexpected=1
+      fi
+    done <<< "$missing"
+  fi
+  if [ "$unexpected" = 1 ]; then
     echo
     echo "    Yours to keep?  Add it to skills/ with a targets: line and commit."
     echo "    Third-party?    Add an install_skill call to install-claude.sh."
-    echo "    Work-only?      Leave it — it belongs to a private channel, not a public repo."
+    echo "    Work-only?      Add it to WORK_ONLY in this script."
   else
     clean "nothing unaccounted for"
   fi
@@ -178,13 +196,26 @@ fi
 
 # ---------------------------------------------------------------------------
 section "Global CLAUDE.md drift"
+MACHINE_LOCAL_MARKER='<!-- machine-local:'
 if [ ! -f "$CLAUDE_DIR/CLAUDE.md" ]; then
   clean "no global CLAUDE.md"
 elif diff -q "$SCRIPT_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md" >/dev/null 2>&1; then
   clean "CLAUDE.md identical to repo"
 else
-  note "CLAUDE.md differs from the repo — review:"
-  echo "      diff $SCRIPT_DIR/CLAUDE.md $CLAUDE_DIR/CLAUDE.md"
+  # A machine may legitimately append work-project specifics that must not reach a
+  # public repo. Everything from the marker down is expected divergence; compare
+  # only the part above it, so real drift in the shared body still surfaces.
+  stripped=$(mktemp)
+  sed "/${MACHINE_LOCAL_MARKER}/,\$d" "$CLAUDE_DIR/CLAUDE.md" \
+    | sed -e :a -e '/^\n*$/{$d;N;};/\n$/ba' > "$stripped"
+  if diff -q "$SCRIPT_DIR/CLAUDE.md" "$stripped" >/dev/null 2>&1; then
+    n=$(sed -n "/${MACHINE_LOCAL_MARKER}/,\$p" "$CLAUDE_DIR/CLAUDE.md" | wc -l | tr -d ' ')
+    info "CLAUDE.md matches the repo, plus a $n-line machine-local section (expected)"
+  else
+    note "CLAUDE.md differs from the repo above the machine-local marker — review:"
+    echo "      diff $SCRIPT_DIR/CLAUDE.md $CLAUDE_DIR/CLAUDE.md"
+  fi
+  rm -f "$stripped"
 fi
 
 # ---------------------------------------------------------------------------
