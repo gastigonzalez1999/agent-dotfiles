@@ -47,7 +47,21 @@ Skills are authored here once and generated into cursor-dotfiles:
 
 ```bash
 node scripts/sync-to-cursor.mjs ../cursor-dotfiles
+node scripts/sync-to-cursor.mjs ../cursor-dotfiles --check   # exit 1 if stale
 ```
+
+Cursor-only assets that have no equivalent in the other harnesses live under
+`cursor/` and ship unfiltered — there is no `targets:` decision to make:
+
+| | |
+|---|---|
+| `cursor/commands/` | slash commands → `~/.cursor/commands` |
+| `cursor/agents/` | subagents a parent dispatches via Task → `~/.cursor/agents` |
+
+A subagent is only worth adding if it loads a rubric from a skill that ships to
+Cursor. One whose skill lives somewhere else always falls through to its own
+fallback text, which is how you end up maintaining a second, worse copy of a
+review skill.
 
 ## If you cloned this on a work machine
 
