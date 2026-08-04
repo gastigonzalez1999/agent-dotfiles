@@ -119,7 +119,16 @@ bash install-codex.sh
 
 # Cursor: regenerate the output repo, then install from there
 node scripts/sync-to-cursor.mjs ../cursor-dotfiles
+
+# What's on this machine that the repo doesn't know about?
+bash sync-up.sh
 ```
+
+`sync-up.sh` is the reverse direction. The installers push repo → machine; nothing
+audited machine → repo, so a skill written straight into `~/.claude/skills`, a
+hand-edited setting, or a package installed by the skills.sh CLI stayed invisible
+until the next machine came up missing it. It is read-only — every finding is
+yours to decide about. Run it before committing.
 
 On Windows without Git Bash on PATH:
 
