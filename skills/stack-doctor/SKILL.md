@@ -23,7 +23,12 @@ lsof -i :3000 -i :3002 -i :5432 -i :5433 -i :6379 2>/dev/null | grep LISTEN
 
 ### Env vars
 ```bash
-cat .env 2>/dev/null || echo "no .env found"
+# Names and set/empty only — never the values. Diagnosing a stack needs to know
+# which variables exist, and printing secrets into a transcript that gets saved
+# or pasted elsewhere is how they leak.
+sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=\(.*\)/\1\t[\2]/p' .env 2>/dev/null \
+  | sed 's/\t\[\]$/\tEMPTY/; s/\t\[.*\]$/\tset/' \
+  || echo "no .env found"
 ```
 
 ### Database connectivity
