@@ -274,7 +274,8 @@ for skill_dir in "$SCRIPT_DIR"/skills/*/; do
     # Skipped skills are left alone rather than removed: a same-named skill here
     # may be a symlink the user installed from elsewhere.
     targets_include "$skill_dir" claude || { echo "  [skip] $name — not targeted at claude"; continue; }
-    rm -rf "$SKILLS_DIR/$name"
+    # `:?` aborts on an empty SKILLS_DIR rather than expanding to `rm -rf /$name`.
+    rm -rf "${SKILLS_DIR:?}/$name"
     cp -R "$skill_dir" "$SKILLS_DIR/$name"
 done
 echo "  [ok] synced $SCRIPT_DIR/skills/ -> $SKILLS_DIR/"
@@ -282,7 +283,7 @@ echo "  [ok] synced $SCRIPT_DIR/skills/ -> $SKILLS_DIR/"
 # --- Verification loop runner + enforcement hooks ---
 echo ""
 echo "Installing the loop runner..."
-rm -rf "$CLAUDE_DIR/loop"
+rm -rf "${CLAUDE_DIR:?}/loop"
 cp -R "$SCRIPT_DIR/loop" "$CLAUDE_DIR/loop"
 echo "  [ok] $CLAUDE_DIR/loop"
 # Merges into an existing settings.json rather than skipping it, so hooks land on
@@ -313,9 +314,16 @@ fi
 # ---------------------------------------------------------------------------
 # 4. Copy CLAUDE.md global rules
 # ---------------------------------------------------------------------------
+# Merged rather than skipped, for the same reason as settings.json: skipping
+# meant a machine kept whatever CLAUDE.md it got on day one, so new skills
+# installed but the trigger sections announcing them never arrived. Sections the
+# repo does not declare are kept — that is where machine-local notes live.
 echo "Installing global CLAUDE.md..."
-if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
-    echo "  CLAUDE.md already exists — skipping. Merge manually from CLAUDE.md in repo if needed."
+if command -v node >/dev/null 2>&1; then
+    node "$SCRIPT_DIR/scripts/merge-claude-md.mjs" || \
+        echo "  [warn] CLAUDE.md merge failed — run: node $SCRIPT_DIR/scripts/merge-claude-md.mjs"
+elif [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
+    echo "  [warn] node not found — leaving the existing CLAUDE.md alone"
 else
     cp "$SCRIPT_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
     echo "  [ok] CLAUDE.md"
