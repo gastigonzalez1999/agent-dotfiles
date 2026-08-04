@@ -102,6 +102,42 @@ install_skill() {
     rm -rf "$tmp"
 }
 
+# Install a skill whose SKILL.md sits at the repo root, so there is no subfolder to
+# copy out. install_skill cannot express this: it would need "." as the subfolder, and
+# `cp -r "$tmp/." "$target"` requires $target to already exist.
+install_skill_repo_root() {
+    [ "$SKIP_EXTERNAL" -eq 1 ] && return 0
+
+    local repo="$1"
+    local skill_name="$2"
+    local target="$SKILLS_DIR/${skill_name}@"
+
+    if [ -d "$target" ]; then
+        echo "  [skip] $skill_name already installed"
+        return
+    fi
+    # Same guard as install_skill: something may already provide this under its plain
+    # name, and installing both loads one skill twice under two names.
+    if [ -e "$SKILLS_DIR/$skill_name" ]; then
+        echo "  [skip] $skill_name — already provided under its plain name"
+        return
+    fi
+
+    echo "  Installing $skill_name from $repo (repo root)..."
+    # Clone straight to the destination; there is nothing to extract from it.
+    if git clone --depth=1 "https://github.com/$repo" "$target" -q 2>/dev/null; then
+        # Drop the git metadata so the installed skill is a plain directory. `find`
+        # rather than a recursive delete, to keep the blast radius to one directory.
+        if [ -d "$target/.git" ]; then
+            find "$target/.git" -mindepth 1 -delete 2>/dev/null
+            rmdir "$target/.git" 2>/dev/null
+        fi
+        echo "  [ok] $skill_name"
+    else
+        echo "  [fail] $skill_name — clone failed"
+    fi
+}
+
 # --- Core / meta ---
 install_skill "obra/superpowers" "skills/using-superpowers" "using-superpowers"
 install_skill "obra/superpowers" "skills/using-git-worktrees" "using-git-worktrees"
@@ -157,6 +193,10 @@ install_skill "hoodini/ai-agents-skills" "skills/mongodb" "mongodb"
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docker-expert"
 install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices" "nodejs-best-practices"
 
+# --- Code review ---
+# Whole-repo skill (SKILL.md at the root), so it needs the repo-root installer.
+install_skill_repo_root "awesome-skills/code-review-skill" "code-review-skill"
+
 # --- skills.sh CLI packages ---
 # 25 skills reached this machine through `npx skills add` and lived only in
 # ~/.agents/skills, which nothing here recreated — so a fresh machine got a
@@ -206,6 +246,20 @@ CLI_SKILLS
 echo ""
 echo "Installing skills.sh packages..."
 install_cli_skills
+
+# --- npm-delivered agent tooling ---
+# AIDesigner ships its own skill, subagent and command into every supported host and
+# regenerates them on upgrade, so its output is deliberately not committed here.
+# Without this step a fresh machine simply lacks it.
+if command -v npx >/dev/null 2>&1; then
+    echo ""
+    echo "Installing npm agent tooling..."
+    if npx -y @aidesigner/agent-skills init --all --scope user >/dev/null 2>&1; then
+        echo "  [ok] @aidesigner/agent-skills"
+    else
+        echo "  [warn] @aidesigner/agent-skills — run manually: npx -y @aidesigner/agent-skills init --all --scope user"
+    fi
+fi
 
 # --- Custom skills (from agent-dotfiles; always match this repo) ---
 # Installs straight into $SKILLS_DIR. This previously targeted
