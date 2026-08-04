@@ -1,5 +1,5 @@
 {
-  "model": "opus",
+  "model": "opus[1m]",
   "effortLevel": "high",
   "theme": "dark-ansi",
   "autoUpdatesChannel": "latest",
@@ -38,7 +38,7 @@
   },
   "enabledPlugins": {
     "andrej-karpathy-skills@karpathy-skills": true,
-    "claude-mem@thedotmack": false,
+    "claude-mem@thedotmack": true,
     "warp@claude-code-warp": true,
     "vercel@claude-plugins-official": true
   },
