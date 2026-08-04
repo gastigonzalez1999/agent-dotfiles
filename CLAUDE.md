@@ -4,6 +4,11 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+> This file does double duty: `install-claude.sh` copies it to `~/.claude/CLAUDE.md`
+> as the global rules for every project, and it is also this repo's own CLAUDE.md.
+> The skill-trigger sections below are mirrored into `AGENTS.md` and
+> `codex/AGENTS.md` by `scripts/build-docs.mjs` — edit them here, never there.
+
 ## 1. Think Before Coding
 
 - State assumptions explicitly. If uncertain, ask.
@@ -139,3 +144,5 @@ Primary languages and runtimes: **TypeScript** (main), **Python**, **Go**.
 - **`ConfigModule.validate` timing**: env overrides set inside a test file are often read before the assignment lands. Override the config provider with `overrideProvider` instead of setting `process.env`.
 - **NestJS 11 named wildcard routes don't capture slashes** on the Express adapter — `:path*` stops at the first `/`. Use a regex route or split the segments.
 - **ts-jest + `nodenext`**: needs an explicit commonjs override in the jest transform config, or every import fails to resolve at test time.
+- **`os.homedir()` ignores `$HOME` on Windows** — it reads `USERPROFILE`. A script that mixes the two writes to two different homes, and any test that sets `HOME` to a scratch dir will silently hit the real one. Use `process.env.HOME || homedir()`.
+- **Comparing files byte-for-byte on Windows**: a CRLF working copy differs from an LF one even when git reports both clean, because git normalizes before diffing and your code does not. Normalize line endings before comparing or parsing text.

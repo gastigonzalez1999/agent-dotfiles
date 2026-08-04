@@ -20,9 +20,8 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { REPO, readAllSkills } from './lib/skills.mjs';
 
-const REPO = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const [, , targetArg, ...flags] = process.argv;
 const dryRun = flags.includes('--dry-run');
 const check = flags.includes('--check');
@@ -42,55 +41,15 @@ if (!existsSync(join(target, 'skills')) || !existsSync(join(target, 'rules'))) {
 // silently starts lying the moment a skill is added or renamed.
 const GENERATED_RULE = 'toolkit-skills-index.mdc';
 
+/** .gitattributes pins these to LF, so a CRLF working copy is a checkout artefact. */
+const TEXT = /\.(md|mdc|mjs|js|json|sh|txt|yml|yaml)$/i;
+
 // ---------------------------------------------------------------------------
 // Read the manifest: every skill declares who it ships to.
 // ---------------------------------------------------------------------------
 
-/** Parse the frontmatter we care about. Deliberately minimal — no YAML dep. */
-function readSkill(name) {
-  const path = join(REPO, 'skills', name, 'SKILL.md');
-  if (!existsSync(path)) return null;
-  // Normalize line endings before parsing: a Windows checkout can leave CRLF
-  // here, and every pattern below anchors on \n.
-  const text = readFileSync(path, 'utf8').split('\r\n').join('\n');
-  if (!text.startsWith('---')) return { name, targets: [], description: '', invalid: 'no frontmatter' };
-
-  const end = text.indexOf('\n---', 3);
-  const front = text.slice(3, end === -1 ? undefined : end);
-
-  const targetsMatch = front.match(/^targets:\s*\[(.*?)\]/m);
-  const targets = targetsMatch
-    ? targetsMatch[1].split(',').map((t) => t.trim()).filter(Boolean)
-    : [];
-
-  // `description:` is either inline or a `>-` folded block continuing on
-  // indented lines.
-  let description = '';
-  const inline = front.match(/^description:[ \t]*([^>\s].*)$/m);
-  if (inline) {
-    description = inline[1].trim().replace(/^["']|["']$/g, '');
-  } else {
-    const folded = front.match(/^description:[ \t]*>-?\n((?:[ \t]+.*\n?)+)/m);
-    if (folded) description = folded[1].split('\n').map((l) => l.trim()).filter(Boolean).join(' ');
-  }
-
-  const invalid = !targetsMatch ? 'no targets:' : !description ? 'no description:' : null;
-  return { name, targets, description, invalid };
-}
-
-const all = readdirSync(join(REPO, 'skills'))
-  .filter((n) => statSync(join(REPO, 'skills', n)).isDirectory())
-  .map(readSkill)
-  .filter(Boolean);
-
-const broken = all.filter((s) => s.invalid);
-if (broken.length) {
-  console.error('These skills cannot be shipped — fix their frontmatter first:');
-  for (const s of broken) console.error(`  ${s.name}: ${s.invalid}`);
-  process.exit(2);
-}
-
-const shipping = all.filter((s) => s.targets.includes('cursor')).sort((a, b) => a.name.localeCompare(b.name));
+const all = readAllSkills();
+const shipping = all.filter((s) => s.targets.includes('cursor'));
 
 // ---------------------------------------------------------------------------
 // Stage the full output, then compare. Staging first is what makes --check
@@ -123,12 +82,26 @@ for (const file of readdirSync(join(REPO, 'cursor', 'commands'))) {
 // useless on a machine where nothing provides it.
 cpSync(join(REPO, 'loop'), join(stage, 'loop'), { recursive: true });
 
+// Emit LF regardless of how the source repo happens to be checked out, matching
+// what .gitattributes pins on both sides.
+normalizeTree(stage);
+
 // ---------------------------------------------------------------------------
 // Diff staging against the target.
 // ---------------------------------------------------------------------------
 
 const MANAGED = ['skills', 'rules', 'commands', 'loop'];
 const changes = [];
+
+// The target README is hand-written except for one inventory block. It used to
+// claim "Eight rules" and list a skill that had been deleted, so the counts are
+// generated here rather than remembered there.
+const readmePath = join(target, 'README.md');
+const readmeBefore = existsSync(readmePath)
+  ? readFileSync(readmePath, 'utf8').split('\r\n').join('\n')
+  : null;
+const readmeAfter = readmeBefore === null ? null : applyInventory(readmeBefore);
+if (readmeAfter !== null && readmeAfter !== readmeBefore) changes.push(['update', 'README.md']);
 
 for (const dir of MANAGED) {
   const wanted = walk(join(stage, dir));
@@ -177,6 +150,8 @@ for (const dir of MANAGED) {
   rmSync(join(target, dir), { recursive: true, force: true });
   cpSync(join(stage, dir), join(target, dir), { recursive: true });
 }
+// The README is not wholesale-replaced — only its inventory block is touched.
+if (readmeAfter !== null && readmeAfter !== readmeBefore) writeFileSync(readmePath, readmeAfter);
 rmSync(stage, { recursive: true, force: true });
 
 const skipped = all.length - shipping.length;
@@ -186,15 +161,66 @@ console.log('Commit in cursor-dotfiles, then re-run its installer with --force.\
 
 // ---------------------------------------------------------------------------
 
-/** Every file under `dir`, keyed by path relative to it. */
+/**
+ * Fill the target README's inventory block, if it has one.
+ *
+ * Returns the text unchanged when the markers are absent, so this stays
+ * optional: the README is hand-written and a clone without the markers is not
+ * an error, just one that keeps its own counts.
+ */
+function applyInventory(text) {
+  const begin = '<!-- generated:begin inventory -->';
+  const end = '<!-- generated:end inventory -->';
+  const from = text.indexOf(begin);
+  const to = text.indexOf(end);
+  if (from === -1 || to === -1) return text;
+
+  const rules = readdirSync(join(stage, 'rules')).sort();
+  const body = [
+    '<!-- Generated by agent-dotfiles/scripts/sync-to-cursor.mjs. Edits here are overwritten. -->',
+    '',
+    `- **${shipping.length} skills** under \`.cursor/skills/<slug>/SKILL.md\`. The full routing`,
+    '  table, with each skill\'s trigger, is in `rules/toolkit-skills-index.mdc`.',
+    `- **${rules.length} rules** under \`.cursor/rules/toolkit-*.mdc\`:`,
+    `  ${rules.map((r) => `\`${r.replace(/^toolkit-|\.mdc$/g, '')}\``).join(', ')}.`,
+  ].join('\n');
+
+  return `${text.slice(0, from + begin.length)}\n${body}\n${text.slice(to)}`;
+}
+
+/**
+ * Every file under `dir`, keyed by path relative to it.
+ *
+ * Text files are normalized to LF first. Without this, a source file that a
+ * Windows tool happened to write with CRLF makes --check report a divergence
+ * git itself does not see (it normalizes before diffing), and a sync that
+ * "fixes" it by copying the CRLF straight through.
+ */
 function walk(dir, base = dir, into = new Map()) {
   if (!existsSync(dir)) return into;
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) walk(full, base, into);
-    else into.set(relative(base, full).split('\\').join('/'), readFileSync(full));
+    else {
+      const rel = relative(base, full).split('\\').join('/');
+      const raw = readFileSync(full);
+      into.set(rel, TEXT.test(entry) ? Buffer.from(raw.toString('utf8').split('\r\n').join('\n')) : raw);
+    }
   }
   return into;
+}
+
+/** Rewrite every text file under `dir` with LF endings, in place. */
+function normalizeTree(dir) {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) normalizeTree(full);
+    else if (TEXT.test(entry)) {
+      const raw = readFileSync(full, 'utf8');
+      const lf = raw.split('\r\n').join('\n');
+      if (lf !== raw) writeFileSync(full, lf);
+    }
+  }
 }
 
 /** Claude skills reference ~/.claude paths; the Cursor copies must not. */
