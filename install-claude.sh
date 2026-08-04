@@ -314,9 +314,16 @@ fi
 # ---------------------------------------------------------------------------
 # 4. Copy CLAUDE.md global rules
 # ---------------------------------------------------------------------------
+# Merged rather than skipped, for the same reason as settings.json: skipping
+# meant a machine kept whatever CLAUDE.md it got on day one, so new skills
+# installed but the trigger sections announcing them never arrived. Sections the
+# repo does not declare are kept — that is where machine-local notes live.
 echo "Installing global CLAUDE.md..."
-if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
-    echo "  CLAUDE.md already exists — skipping. Merge manually from CLAUDE.md in repo if needed."
+if command -v node >/dev/null 2>&1; then
+    node "$SCRIPT_DIR/scripts/merge-claude-md.mjs" || \
+        echo "  [warn] CLAUDE.md merge failed — run: node $SCRIPT_DIR/scripts/merge-claude-md.mjs"
+elif [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
+    echo "  [warn] node not found — leaving the existing CLAUDE.md alone"
 else
     cp "$SCRIPT_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md"
     echo "  [ok] CLAUDE.md"

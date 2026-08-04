@@ -172,9 +172,14 @@ if (Get-Command claude -ErrorAction SilentlyContinue) {
 # ---------------------------------------------------------------------------
 # 6. Global CLAUDE.md
 # ---------------------------------------------------------------------------
+# Merged rather than skipped, matching install-claude.sh: skipping meant a
+# machine kept whatever CLAUDE.md it got on day one. Local-only sections survive.
 $claudeMd = Join-Path $ClaudeDir "CLAUDE.md"
-if (Test-Path -LiteralPath $claudeMd) {
-  Write-Host "CLAUDE.md already exists - skipping. Merge manually from the repo copy if needed."
+if ($HasNode) {
+  & node (Join-Path $ScriptDir "scripts\merge-claude-md.mjs")
+  if ($LASTEXITCODE -ne 0) { Write-Host "  [warn] CLAUDE.md merge failed" }
+} elseif (Test-Path -LiteralPath $claudeMd) {
+  Write-Host "  [warn] node not found - leaving the existing CLAUDE.md alone"
 } else {
   Copy-Item -LiteralPath (Join-Path $ScriptDir "CLAUDE.md") -Destination $claudeMd -Force
   Write-Host "  [ok] CLAUDE.md"
