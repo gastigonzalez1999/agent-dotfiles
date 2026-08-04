@@ -157,6 +157,56 @@ install_skill "hoodini/ai-agents-skills" "skills/mongodb" "mongodb"
 install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docker-expert"
 install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices" "nodejs-best-practices"
 
+# --- skills.sh CLI packages ---
+# 25 skills reached this machine through `npx skills add` and lived only in
+# ~/.agents/skills, which nothing here recreated — so a fresh machine got a
+# dangling symlink for each. Reinstalling them is the point of this step.
+#
+# Three non-obvious things about the CLI, each of which silently installs nothing:
+#   - the harness slug is `claude-code`, not `claude`
+#   - `--agent a,b,c` and `--skill a,b,c` are rejected as invalid even when every
+#     value is valid on its own; it wants one flag per value
+#   - npx reads stdin, so without `< /dev/null` the first call swallows the rest
+#     of the loop's input and only one package installs
+# `--agent '*'` would also work but targets ~70 harnesses, two of which (Eve,
+# PromptScript) refuse global installs and make the CLI exit non-zero regardless.
+#
+# Every name must still exist upstream: one unknown name fails the WHOLE package.
+# List what a repo currently offers with:
+#   npx -y skills@latest add <owner/repo> --list
+#
+# Dropped because upstream renamed them (replacements already listed):
+#   diagnose -> diagnosing-bugs, to-issues -> to-tickets
+# Dropped because upstream removed them entirely — adopt into skills/ with MIT
+# attribution if you want to keep one:
+#   caveman, to-prd, write-a-prd, write-a-skill, zoom-out
+install_cli_skills() {
+    [ "$SKIP_EXTERNAL" -eq 1 ] && return 0
+    command -v npx >/dev/null 2>&1 || { echo "  [warn] npx not found — skills.sh packages skipped"; return 0; }
+
+    local agents=(--agent claude-code --agent codex --agent cursor)
+    local pkg skills skill_flags _s
+    while IFS='|' read -r pkg skills; do
+        [ -z "$pkg" ] && continue
+        skill_flags=()
+        IFS=',' read -r -a _list <<< "$skills"
+        for _s in "${_list[@]}"; do [ -n "$_s" ] && skill_flags+=(--skill "$_s"); done
+        if npx -y skills@latest add "$pkg" --global "${agents[@]}" "${skill_flags[@]}" --yes \
+             < /dev/null >/dev/null 2>&1; then
+            echo "  [ok] $pkg"
+        else
+            echo "  [fail] $pkg — check the skill names still exist upstream"
+        fi
+    done <<'CLI_SKILLS'
+mattpocock/skills|ask-matt,code-review,codebase-design,diagnosing-bugs,domain-modeling,grill-with-docs,grilling,implement,prototype,research,resolving-merge-conflicts,setup-matt-pocock-skills,teach,to-spec,to-tickets,triage,wayfinder,writing-great-skills
+vercel-labs/agent-browser|*
+CLI_SKILLS
+}
+
+echo ""
+echo "Installing skills.sh packages..."
+install_cli_skills
+
 # --- Custom skills (from agent-dotfiles; always match this repo) ---
 # Installs straight into $SKILLS_DIR. This previously targeted
 # "$SKILLS_DIR/.claude/skills", a nested path Claude Code never scans, so these
