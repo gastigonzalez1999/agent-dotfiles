@@ -14,6 +14,8 @@
  *                       editing them locally is what drift is made of.
  *   only in the target  kept, appended after the repo's sections. This is where
  *                       a machine's own notes live, and nothing here deletes them.
+ *   vendor fenced       lifted out before the split and re-appended at the end,
+ *                       untouched. See extractVendorBlocks below for why.
  *
  * Heading text is the key, so renaming a section upstream reads as "remove the
  * old, add the new" — the old one survives as if it were local. That is the safe
@@ -59,13 +61,17 @@ if (!existsSync(targetPath)) {
 }
 
 const target = read(targetPath);
+const { text: targetBody, blocks: vendorBlocks } = extractVendorBlocks(target);
 
 const sourceSections = splitSections(source);
-const targetSections = splitSections(target);
+const targetSections = splitSections(targetBody);
 const sourceHeadings = new Set(sourceSections.map((s) => s.heading));
 
 const localOnly = targetSections.filter((s) => !sourceHeadings.has(s.heading));
-const merged = [...sourceSections, ...localOnly].map((s) => s.text).join('\n');
+const merged = [
+  ...[...sourceSections, ...localOnly].map((s) => s.text),
+  ...vendorBlocks.map((b) => `${b.replace(/\n+$/, '')}\n`),
+].join('\n');
 
 if (merged === target) {
   console.log(`CLAUDE.md already matches the repo (${targetPath})`);
@@ -82,6 +88,7 @@ if (dryRun) {
     }
   }
   for (const s of localOnly) console.log(`  keep     ${s.heading} (local only)`);
+  for (const b of vendorBlocks) console.log(`  keep     ${b.split('\n')[0].trim()} (vendor block)`);
   process.exit(0);
 }
 
@@ -94,10 +101,53 @@ console.log(`  [ok] backup at ${backup}`);
 if (localOnly.length) {
   console.log(`  [ok] kept ${localOnly.length} local section(s): ${localOnly.map((s) => s.heading).join(', ')}`);
 }
+if (vendorBlocks.length) {
+  console.log(`  [ok] kept ${vendorBlocks.length} vendor block(s): ${vendorBlocks.map((b) => b.split('\n')[0].trim()).join(', ')}`);
+}
 
 /** Normalise line endings: a Windows checkout mixes CRLF and LF, and every split below anchors on \n. */
 function read(path) {
   return readFileSync(path, 'utf8').split('\r\n').join('\n');
+}
+
+/**
+ * Lift `<!-- vendor:block -->` … `<!-- /vendor:block -->` regions out of the
+ * target before the heading split, returning them alongside the remaining text.
+ *
+ * gentle-ai writes its blocks into this same file, and several of them trail
+ * after our last `# ` section without a heading of their own. The splitter read
+ * them as part of that section, and replacing the section from the repo then
+ * deleted them outright — silently, which is the one thing the policy above says
+ * this script must never do. One block also *contains* `# ` headings, so the
+ * splitter used to cut it into three.
+ *
+ * A marker only counts as a fence when its closer actually exists. gentle-ai
+ * also emits `:start`/`:end` markers inside its own blocks, and treating one of
+ * those as an unclosed fence would swallow the rest of the file.
+ */
+function extractVendorBlocks(text) {
+  const lines = text.split('\n');
+  const opener = /^<!-- ([a-z0-9-]+:[a-z0-9-]+) -->$/;
+  const blocks = [];
+  const kept = [];
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const match = lines[i].trim().match(opener);
+    if (!match) {
+      kept.push(lines[i]);
+      continue;
+    }
+    const closer = `<!-- /${match[1]} -->`;
+    const end = lines.findIndex((l, j) => j > i && l.trim() === closer);
+    if (end === -1) {
+      kept.push(lines[i]);
+      continue;
+    }
+    blocks.push(lines.slice(i, end + 1).join('\n'));
+    i = end;
+  }
+
+  return { text: kept.join('\n'), blocks };
 }
 
 /**
