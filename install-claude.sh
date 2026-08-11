@@ -329,6 +329,58 @@ else
     echo "  [ok] CLAUDE.md"
 fi
 
+# ---------------------------------------------------------------------------
+# gentle-ai
+# ---------------------------------------------------------------------------
+# Runs last, after every file this repo owns is in place. gentle-ai adapts the
+# agents already on the machine rather than installing them, so it wants the
+# final word — and its own writes (skills/_shared, agents/, commands/sdd-*, the
+# CLAUDE.md sections) never collide with ours in either order.
+#
+# `sync` and not `install`: sync is non-interactive and re-applies the managed
+# components at the current version, while `install` picks a persona and preset
+# and is the user's choice to make once per machine, not an installer's.
+echo ""
+echo "Installing gentle-ai..."
+install_gentle_ai() {
+    [ "$SKIP_EXTERNAL" -eq 1 ] && { echo "  [skip] gentle-ai — --skip-external"; return 0; }
+
+    if ! command -v gentle-ai >/dev/null 2>&1; then
+        case "$(uname -s)" in
+            # The curl installer publishes no Windows build; Go is the documented
+            # route there, and Git Bash reports MINGW/MSYS.
+            MINGW*|MSYS*|CYGWIN*)
+                command -v go >/dev/null 2>&1 || {
+                    echo "  [warn] gentle-ai not installed and go not found — see https://github.com/Gentleman-Programming/gentle-ai"
+                    return 0
+                }
+                go install github.com/gentleman-programming/gentle-ai/v2/cmd/gentle-ai@latest >/dev/null 2>&1 || {
+                    echo "  [warn] go install failed — run it manually"
+                    return 0
+                }
+                ;;
+            *)
+                curl -fsSL https://raw.githubusercontent.com/Gentleman-Programming/gentle-ai/main/scripts/install.sh | bash >/dev/null 2>&1 || {
+                    echo "  [warn] gentle-ai install script failed — see https://github.com/Gentleman-Programming/gentle-ai"
+                    return 0
+                }
+                ;;
+        esac
+        # `go install` lands in $GOPATH/bin, which a fresh shell may not have on PATH yet.
+        command -v gentle-ai >/dev/null 2>&1 || {
+            echo "  [ok] gentle-ai binary installed — reopen your shell, then run: gentle-ai install"
+            return 0
+        }
+        echo "  [ok] gentle-ai binary installed"
+        echo "  [next] run 'gentle-ai install' once to pick your persona and preset"
+        return 0
+    fi
+
+    gentle-ai sync >/dev/null 2>&1 && echo "  [ok] gentle-ai sync" || \
+        echo "  [warn] gentle-ai sync failed — run it manually"
+}
+install_gentle_ai
+
 echo ""
 echo "Done! Skills installed to $SKILLS_DIR"
 echo "Statusline script: $CLAUDE_DIR/statusline-command.sh"

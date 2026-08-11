@@ -113,6 +113,8 @@ It runs commands the repository already declares and checks exit codes. No netwo
 | [Codex](https://openai.com/codex) | `install-codex.sh` | Skills, `AGENTS.md`, rules |
 | [Cursor](https://cursor.com) | `cursor-dotfiles`, generated from here | Skills, rules, commands |
 
+[gentle-ai](#gentle-ai) layers onto all three and is installed by `install-claude.sh`.
+
 Every skill declares who it ships to:
 
 ```yaml
@@ -215,6 +217,51 @@ Cloned by `install-claude.sh`. Skip them with `--skip-external`.
 - **statusline** — `statusline-command.sh`. One script for every OS; it needs only bash, node, git and awk, all of which Git Bash provides on Windows.
 - **settings.json** — merged from `claude/settings.base.json` (model, effort, theme, statusline, voice, plugins, marketplaces, MCP permissions). Keys the base does not declare are left alone, and a timestamped `.bak` is written. Hooks are owned by `loop install-hooks`, not by the merge.
 - **MCP servers** — `mcp/servers.json`; registered with `claude mcp add-json` when both the `claude` CLI and the server binary are present.
+
+## gentle-ai
+
+[gentle-ai](https://github.com/Gentleman-Programming/gentle-ai) is installed alongside
+this toolkit. It adapts agents that already exist on the machine — persona, Engram
+memory, SDD phases and commands, curated skills, receipt-driven review.
+
+`install-claude.sh` installs the binary if it is missing and then runs `gentle-ai sync`,
+which is non-interactive and covers **every** agent it manages, Codex and Cursor
+included. That is why `install-codex.sh` does not repeat the step. On a brand-new
+machine, run `gentle-ai install` once afterwards to pick a persona and preset — that
+choice is yours, not an installer's.
+
+The two projects write into the same directories and must not step on each other:
+
+| Path | Owner |
+|---|---|
+| `~/.claude/skills/_shared/`, `~/.claude/agents/`, `~/.claude/commands/sdd-*` | gentle-ai |
+| `~/.cursor/rules/gentle-ai.mdc` | gentle-ai |
+| `~/.codex/AGENTS.md` — persona and every `gentle-ai:` block | gentle-ai |
+| `~/.codex/AGENTS.md` — the `agent-dotfiles:global` block only | this repo |
+| `# Agent Teams Lite`, `# Native Bounded Review Orchestration` in `~/.claude/CLAUDE.md` | gentle-ai |
+| everything else the installers here write | this repo |
+
+Both directions are safe, in either order, because every writer here merges rather
+than replaces: `merge-settings.mjs` for `settings.json`, `merge-claude-md.mjs` for
+`CLAUDE.md`, and `merge-codex-agents.mjs` for `~/.codex/AGENTS.md`.
+
+That last one was the real bug. `install-codex.sh` used to `cp` straight over
+`~/.codex/AGENTS.md`. On a machine with gentle-ai installed that file was 687 lines
+and **none of them came from here** — 74 lines of gentle-ai persona followed by its
+SDD orchestrator, Engram and agent-routing blocks. The copy replaced all of it with
+our 70 lines, on every run, and only the next `gentle-ai sync` put it back.
+
+So this repo no longer owns that file. It owns one fenced region inside it:
+
+```
+<!-- agent-dotfiles:global -->   …codex/AGENTS.md…   <!-- /agent-dotfiles:global -->
+```
+
+The merge replaces that region and preserves every other byte, appending the fence
+at the end on first run rather than reordering what another tool wrote.
+
+Adding a skill under `skills/_shared/` here would break the truce — the installer
+removes any skill directory it owns by name, and that name is gentle-ai's.
 
 ## Keeping the docs honest
 

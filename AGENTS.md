@@ -58,6 +58,47 @@ When browser proof is required, invoke `skill: "browser-use"` and follow it (mcp
 - **thermo-nuclear-code-quality-review** (`skills/thermo-nuclear-code-quality-review/SKILL.md`) — harsh maintainability audit (code-judo, 1k-line rule, spaghetti). Trigger: `/thermo-nuclear-code-quality-review` or user asks for thermonuclear / deep code quality review.
 
 When triggered, gather branch diff + changed file contents, then apply the skill rubric.
+
+# gentle-ai
+
+[gentle-ai](https://github.com/Gentleman-Programming/gentle-ai) is installed on this
+machine and is part of the standard toolchain. It adapts the agents you already have
+— Claude Code, Cursor, Codex and others — with the persona, Engram memory, the SDD
+phase agents and commands, curated skills, and receipt-driven review.
+
+```bash
+gentle-ai update    # version check: gentle-ai, engram, gga
+gentle-ai sync      # re-apply managed config at the current version (non-interactive)
+gentle-ai install   # first run on a machine; picks persona and preset
+```
+
+Install the binary with `curl -fsSL https://raw.githubusercontent.com/Gentleman-Programming/gentle-ai/main/scripts/install.sh | bash`,
+or `go install github.com/gentleman-programming/gentle-ai/v2/cmd/gentle-ai@latest` on Windows.
+
+**Who owns what.** gentle-ai and this repo write into the same directories without
+overlapping. Keep it that way — the failure mode is silent deletion, not a merge conflict.
+
+| Path | Owner |
+|---|---|
+| `~/.claude/skills/_shared/`, `~/.claude/agents/`, `~/.claude/commands/sdd-*` | gentle-ai |
+| `~/.cursor/rules/gentle-ai.mdc` | gentle-ai |
+| `~/.codex/AGENTS.md` — persona and every `gentle-ai:` block | gentle-ai |
+| `~/.codex/AGENTS.md` — the `agent-dotfiles:global` block only | this repo |
+| `# Agent Teams Lite`, `# Native Bounded Review Orchestration` in `~/.claude/CLAUDE.md` | gentle-ai |
+| everything else this repo's installers write | this repo |
+
+- Don't hand-edit a `gentle-ai:` fenced block or a gentle-ai-owned section — `gentle-ai sync` overwrites it.
+- Don't add a skill under `skills/_shared/` here. That directory is gentle-ai's, and this repo's installer deletes any skill directory it owns by name.
+- Both installers are order-independent: each preserves what the other wrote.
+
+**Receipt-driven review is the user's call.**
+`gentle-ai review mode enable|disable|status` is a user-owned kill switch, and `status`
+is read-only. It is **off** by default. Never enable it on the user's behalf, and never
+work around it while it is disabled — deliver under ordinary repository policy instead.
+
+Its orchestration contract ships in `~/.claude/CLAUDE.md` and
+`~/.claude/skills/_shared/sdd-orchestrator-workflow.md`, written by gentle-ai itself.
+Read those rather than restating them here.
 <!-- generated:end triggers -->
 
 ## Behavioral Rules
