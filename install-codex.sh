@@ -169,8 +169,18 @@ done
 CODEX_DIR="${CODEX_HOME:-$HOME/.codex}"
 echo ""
 echo "Global instructions:"
-cp "$SCRIPT_DIR/codex/AGENTS.md" "$CODEX_DIR/AGENTS.md"
-echo "  [ok] AGENTS.md"
+# Merged rather than copied: gentle-ai injects its own fenced blocks into this
+# same file, and a plain `cp` deleted every one of them. The merge replaces our
+# prose and re-appends anything a vendor fenced off. See scripts/merge-codex-agents.mjs.
+if command -v node >/dev/null 2>&1; then
+    node "$SCRIPT_DIR/scripts/merge-codex-agents.mjs" || \
+        echo "  [warn] AGENTS.md merge failed — run: node $SCRIPT_DIR/scripts/merge-codex-agents.mjs"
+elif [ -f "$CODEX_DIR/AGENTS.md" ]; then
+    echo "  [warn] node not found — leaving the existing AGENTS.md alone"
+else
+    cp "$SCRIPT_DIR/codex/AGENTS.md" "$CODEX_DIR/AGENTS.md"
+    echo "  [ok] AGENTS.md"
+fi
 # rules/default.rules is deliberately NOT shipped. It is Codex's approval cache,
 # not configuration: every entry is a literal command someone approved on one
 # machine, so it accumulates local paths, filenames and URLs from real sessions.
