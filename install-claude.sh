@@ -376,8 +376,24 @@ install_gentle_ai() {
         return 0
     fi
 
-    gentle-ai sync >/dev/null 2>&1 && echo "  [ok] gentle-ai sync" || \
-        echo "  [warn] gentle-ai sync failed — run it manually"
+    # Run from $HOME, never from the clone. gentle-ai resolves its scope from the
+    # working directory: inside a git repo it installs *workspace* config, which
+    # means writing .openclaw/, .windsurf/ and SOUL.md into that repo and
+    # appending ~630 lines to its AGENTS.md. Running this script from its own
+    # clone — the normal way — did exactly that, and then failed 13 verification
+    # checks against files it had not written. `sync` has no --scope flag, so the
+    # working directory is the only control. The subshell keeps the cd local.
+    local log
+    log=$(mktemp)
+    if (cd "$HOME" && gentle-ai sync) >"$log" 2>&1; then
+        echo "  [ok] gentle-ai sync"
+    else
+        # Never swallow this: the first version hid the cause behind /dev/null and
+        # the failure looked like a mystery instead of a wrong working directory.
+        echo "  [warn] gentle-ai sync failed — run it manually from \$HOME:"
+        grep -iE "error|failed" "$log" | head -3 | sed 's/^/         /'
+    fi
+    rm -f "$log"
 }
 install_gentle_ai
 
