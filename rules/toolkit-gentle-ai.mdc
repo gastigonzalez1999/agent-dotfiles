@@ -34,10 +34,10 @@ toolkit owns only its `<!-- agent-dotfiles:global -->` fenced region.
 
 - Read `~/.cursor/rules/gentle-ai.mdc` for the persona and orchestration contract — it is the source, not this file.
 - Run `gentle-ai sync` after a version bump, or `gentle-ai update` to check for one.
-- Treat `gentle-ai review mode` as the user's switch. It is **off** by default.
+- Treat `gentle-ai review mode` as the user's switch. It is **on** by default, and any off wins — a repo can disable it for its own clone, never require it.
 
 ## Don't
 
 - Don't hand-edit `gentle-ai.mdc` or any `<!-- gentle-ai:* -->` fenced block. `gentle-ai sync` overwrites both.
 - Don't name a toolkit rule `gentle-ai.mdc`, and don't add skills under a `_shared/` directory — those names belong to gentle-ai.
-- Don't enable receipt-driven review on the user's behalf, and don't work around it while it is disabled. Deliver under ordinary repository policy instead.
+- Don't flip receipt-driven review either way on the user's behalf, and don't work around it while it is disabled. Deliver under ordinary repository policy instead.
