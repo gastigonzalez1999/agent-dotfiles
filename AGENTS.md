@@ -93,8 +93,11 @@ overlapping. Keep it that way — the failure mode is silent deletion, not a mer
 
 **Receipt-driven review is the user's call.**
 `gentle-ai review mode enable|disable|status` is a user-owned kill switch, and `status`
-is read-only. It is **off** by default. Never enable it on the user's behalf, and never
-work around it while it is disabled — deliver under ordinary repository policy instead.
+is read-only. It is **on** by default: with both sources unset, `status` reports
+`on (decided by default)`. Any off wins — a repo may disable it for its own clone, but
+can never require it, and no other clone inherits that override. Never flip it either
+way on the user's behalf, and never work around it while it is disabled — deliver under
+ordinary repository policy instead.
 
 Its orchestration contract ships in `~/.claude/CLAUDE.md` and
 `~/.claude/skills/_shared/sdd-orchestrator-workflow.md`, written by gentle-ai itself.
