@@ -146,6 +146,9 @@ Primary languages and runtimes: **TypeScript** (main), **Python**, **Go**.
 - **ts-jest + `nodenext`**: needs an explicit commonjs override in the jest transform config, or every import fails to resolve at test time.
 - **`os.homedir()` ignores `$HOME` on Windows** — it reads `USERPROFILE`. A script that mixes the two writes to two different homes, and any test that sets `HOME` to a scratch dir will silently hit the real one. Use `process.env.HOME || homedir()`.
 - **Comparing files byte-for-byte on Windows**: a CRLF working copy differs from an LF one even when git reports both clean, because git normalizes before diffing and your code does not. Normalize line endings before comparing or parsing text.
+- **`gentle-ai sync` resolves its scope from the working directory**: run it inside a git repo and it installs *workspace* config there — `.openclaw/`, `.windsurf/`, `SOUL.md`, and ~630 lines appended to that repo's `AGENTS.md`. `sync` has no `--scope` flag (only `install` does), so the working directory is the only control. Run it from `$HOME`, in a subshell so the `cd` stays local.
+- **A section-keyed merge silently eats vendor fenced blocks**: `<!-- vendor:block -->` regions that trail after the last `# ` heading get read as part of *that* section, so replacing the section deletes them. Lift fenced regions out before splitting and re-append them; don't just make the splitter fence-aware, which attaches the whole tail to the overwritten section and deletes more, not less. Treat a marker as a fence only when its closer exists — a lone `:start` otherwise swallows the rest of the file.
+- **Never run a cosmetic pass over a file containing vendor blocks**: a blank-line squeeze or reflow rewrites bytes inside someone else's fenced region. Compare each fenced block byte-for-byte before and after any repair.
 
 # gentle-ai
 
