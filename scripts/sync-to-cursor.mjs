@@ -132,7 +132,11 @@ if (check) {
     console.error(`cursor-dotfiles is out of date — ${changes.length} file(s) differ:\n`);
     for (const [kind, path] of changes.slice(0, 40)) console.error(`  [${kind}] ${path}`);
     if (changes.length > 40) console.error(`  … and ${changes.length - 40} more`);
-    console.error('\nRun: node scripts/sync-to-cursor.mjs <path>');
+    console.error('\nIf the change is not in agent-dotfiles yet:');
+    console.error('  node scripts/sync-to-cursor.mjs <path>');
+    console.error('\nIf it is, and this is CI on a cursor-dotfiles PR: the gate regenerates');
+    console.error('from agent-dotfiles main, so the source change has to merge first.');
+    console.error('Re-running the sync here would produce no diff — merge, then re-run this check.');
     rmSync(stage, { recursive: true, force: true });
     process.exit(1);
   }
