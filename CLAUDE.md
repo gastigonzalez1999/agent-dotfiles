@@ -6,8 +6,9 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 > This file does double duty: `install-claude.sh` copies it to `~/.claude/CLAUDE.md`
 > as the global rules for every project, and it is also this repo's own CLAUDE.md.
-> The skill-trigger sections below are mirrored into `AGENTS.md` and
-> `codex/AGENTS.md` by `scripts/build-docs.mjs` — edit them here, never there.
+> The skill-trigger sections below, and `# Known Gotchas`, are mirrored into
+> `AGENTS.md` and `codex/AGENTS.md` by `scripts/build-docs.mjs` — edit them
+> here, never there.
 
 ## 1. Think Before Coding
 
@@ -132,7 +133,7 @@ Primary languages and runtimes: **TypeScript** (main), **Python**, **Go**.
 | Redis | 6379 |
 | Swagger | http://localhost:3000/docs |
 
-## Known Gotchas (learn once, never debug again)
+# Known Gotchas (learn once, never debug again)
 
 - **CORS config class default**: NestJS `@nestjs/config` validation classes often have hardcoded defaults (e.g. `http://localhost:3001`) that override `.env`. Always update the default in the class, not just `.env`.
 - **Prisma nullable compound unique**: `findUnique` rejects `null` in compound keys. Use `findFirst({ where: { name, tenantId: null } })` instead.
