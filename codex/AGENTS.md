@@ -59,6 +59,24 @@ When browser proof is required, invoke `skill: "browser-use"` and follow it (mcp
 
 When triggered, gather branch diff + changed file contents, then apply the skill rubric.
 
+# Known Gotchas (learn once, never debug again)
+
+- **CORS config class default**: NestJS `@nestjs/config` validation classes often have hardcoded defaults (e.g. `http://localhost:3001`) that override `.env`. Always update the default in the class, not just `.env`.
+- **Prisma nullable compound unique**: `findUnique` rejects `null` in compound keys. Use `findFirst({ where: { name, tenantId: null } })` instead.
+- **NestJS TRANSIENT scope**: don't call `app.get(SomeTransientService)` in `main.ts` — use singleton scope or inject differently.
+- **Turbo requires `packageManager`**: root `package.json` must have `"packageManager": "npm@x.x.x"` or turbo will warn/fail.
+- **ESLint `@typescript-eslint/no-unused-expressions` v8 bug**: false positives on React patterns — disable rule for web app, not a real error.
+- **Port 5432 conflict**: if local Postgres is running, Docker can't bind 5432. Change docker-compose to 5433 and update `DATABASE_URL`.
+- **`String.replace(needle, value)` corrupts `$&` and `$1`**: any replacement string containing `$` is interpreted as a capture reference, so content gets mangled. Always use the function form: `.replace(needle, () => value)`.
+- **`ConfigModule.validate` timing**: env overrides set inside a test file are often read before the assignment lands. Override the config provider with `overrideProvider` instead of setting `process.env`.
+- **NestJS 11 named wildcard routes don't capture slashes** on the Express adapter — `:path*` stops at the first `/`. Use a regex route or split the segments.
+- **ts-jest + `nodenext`**: needs an explicit commonjs override in the jest transform config, or every import fails to resolve at test time.
+- **`os.homedir()` ignores `$HOME` on Windows** — it reads `USERPROFILE`. A script that mixes the two writes to two different homes, and any test that sets `HOME` to a scratch dir will silently hit the real one. Use `process.env.HOME || homedir()`.
+- **Comparing files byte-for-byte on Windows**: a CRLF working copy differs from an LF one even when git reports both clean, because git normalizes before diffing and your code does not. Normalize line endings before comparing or parsing text.
+- **`gentle-ai sync` resolves its scope from the working directory**: run it inside a git repo and it installs *workspace* config there — `.openclaw/`, `.windsurf/`, `SOUL.md`, and ~630 lines appended to that repo's `AGENTS.md`. `sync` has no `--scope` flag (only `install` does), so the working directory is the only control. Run it from `$HOME`, in a subshell so the `cd` stays local.
+- **A section-keyed merge silently eats vendor fenced blocks**: `<!-- vendor:block -->` regions that trail after the last `# ` heading get read as part of *that* section, so replacing the section deletes them. Lift fenced regions out before splitting and re-append them; don't just make the splitter fence-aware, which attaches the whole tail to the overwritten section and deletes more, not less. Treat a marker as a fence only when its closer exists — a lone `:start` otherwise swallows the rest of the file.
+- **Never run a cosmetic pass over a file containing vendor blocks**: a blank-line squeeze or reflow rewrites bytes inside someone else's fenced region. Compare each fenced block byte-for-byte before and after any repair.
+
 # gentle-ai
 
 [gentle-ai](https://github.com/Gentleman-Programming/gentle-ai) is installed on this
