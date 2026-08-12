@@ -161,7 +161,7 @@ install_skill "analogjs/angular-skills" "skills/angular-tooling" "angular-toolin
 install_skill "anthropics/skills" "skills/frontend-design" "frontend-design"
 install_skill "addyosmani/web-quality-skills" "skills/accessibility" "accessibility"
 install_skill "addyosmani/web-quality-skills" "skills/seo" "seo"
-install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-css-patterns" "tailwind-css-patterns"
+install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-patterns" "tailwind-patterns"
 install_skill "vercel-labs/agent-skills" "skills/react-best-practices" "vercel-react-best-practices"
 install_skill "vercel-labs/agent-skills" "skills/composition-patterns" "vercel-composition-patterns"
 

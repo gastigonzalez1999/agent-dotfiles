@@ -107,7 +107,7 @@ echo "Frontend quality:"
 install_skill "anthropics/skills" "skills/frontend-design"
 install_skill "addyosmani/web-quality-skills" "skills/accessibility"
 install_skill "addyosmani/web-quality-skills" "skills/seo"
-install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-css-patterns"
+install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-patterns"
 install_skill "vercel-labs/agent-skills" "skills/react-best-practices"
 install_skill "vercel-labs/agent-skills" "skills/composition-patterns"
 
