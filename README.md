@@ -204,7 +204,7 @@ Cloned by `install-claude.sh`. Skip them with `--skip-external`.
 - **mindrally/skills** — `typeorm`
 - **obra/superpowers** — `systematic-debugging`, `using-git-worktrees`, `using-superpowers`
 - **prisma/skills** — `prisma-cli`, `prisma-client-api`, `prisma-database-setup`, `prisma-driver-adapter-implementation`, `prisma-postgres`, `prisma-upgrade-v7`
-- **sickn33/antigravity-awesome-skills** — `docker-expert`, `nodejs-backend-patterns`, `nodejs-best-practices`, `tailwind-css-patterns`, `typescript-advanced-types`
+- **sickn33/antigravity-awesome-skills** — `docker-expert`, `nodejs-backend-patterns`, `nodejs-best-practices`, `tailwind-patterns`, `typescript-advanced-types`
 - **softaworks/agent-toolkit** — `session-handoff`
 - **vercel-labs/agent-skills** — `vercel-composition-patterns`, `vercel-react-best-practices`, `vercel-react-native-skills`
 - **vercel-labs/next-skills** — `next-best-practices`, `next-cache-components`, `next-upgrade`
