@@ -169,8 +169,8 @@ done
 CODEX_DIR="${CODEX_HOME:-$HOME/.codex}"
 echo ""
 echo "Global instructions:"
-# Merged rather than copied: gentle-ai injects its own fenced blocks into this
-# same file, and a plain `cp` deleted every one of them. The merge replaces our
+# Merged rather than copied: other tools may inject their own fenced blocks into
+# this same file, and a plain `cp` would delete every one of them. The merge replaces our
 # prose and re-appends anything a vendor fenced off. See scripts/merge-codex-agents.mjs.
 if command -v node >/dev/null 2>&1; then
     node "$SCRIPT_DIR/scripts/merge-codex-agents.mjs" || \

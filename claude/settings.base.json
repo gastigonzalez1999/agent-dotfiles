@@ -40,9 +40,16 @@
     "andrej-karpathy-skills@karpathy-skills": true,
     "claude-mem@thedotmack": true,
     "warp@claude-code-warp": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": true,
+    "ponytail@ponytail": true
   },
   "extraKnownMarketplaces": {
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    },
     "karpathy-skills": {
       "source": {
         "source": "github",
