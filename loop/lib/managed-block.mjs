@@ -59,11 +59,11 @@ export function renderBlock(existing, incoming) {
 }
 
 /** Replace the managed block, or append one, leaving every other byte alone. */
-export function writeBlock(text, block) {
-  const start = text.indexOf(BEGIN);
-  const end = text.indexOf(END);
+export function writeBlock(text, block, begin = BEGIN, endMarker = END) {
+  const start = text.indexOf(begin);
+  const end = text.indexOf(endMarker);
   if (start !== -1 && end !== -1 && end > start) {
-    return text.slice(0, start) + block + text.slice(end + END.length);
+    return text.slice(0, start) + block + text.slice(end + endMarker.length);
   }
   const sep = text.length && !text.endsWith('\n\n') ? (text.endsWith('\n') ? '\n' : '\n\n') : '';
   return text + sep + block + '\n';

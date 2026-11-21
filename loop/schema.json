@@ -79,9 +79,77 @@
           "description": "Whether `loop retro` may write learned rules into this repo and commit them unattended. Off unless explicitly set to \"auto\" — this writes to shared code, so it must be chosen per repo rather than inherited. Do not enable on a repo you share with other people without their agreement."
         }
       }
+    },
+    "guard": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Deterministic checks on the lines a change adds (never pre-existing code). When present, runs as the first check of every gate tier and in the git pre-commit hook. Prefer a real linter rule where the stack has one; this is for rules that linter cannot express, or repos whose lint config you cannot change.",
+      "properties": {
+        "exclude": { "$ref": "#/definitions/prefixes", "description": "Paths never checked (generated or vendored code)." },
+        "suppressions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Report added lint/type suppressions (@ts-ignore, eslint-disable, # noqa, # type: ignore, nolint, @SuppressWarnings, ...). Checked before any comment exemption."
+        },
+        "comments": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Opt in to banning new explanatory comments. Shebangs, directives, /** doc blocks */ and TODO(<issue>) are always allowed.",
+          "properties": {
+            "allow": { "type": "array", "items": { "type": "string" }, "description": "Extra regexes matched against the comment text, e.g. \"^// SAFETY:\"." },
+            "exclude": { "$ref": "#/definitions/prefixes" }
+          }
+        },
+        "markdown": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Opt in to rejecting new .md files outside the allow list.",
+          "properties": {
+            "allow": { "type": "array", "items": { "type": "string" }, "description": "Exact paths, or directory prefixes ending in \"/\"." }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "description": "Banned patterns, matched against code with comments stripped. For nuanced APIs, workaround patterns and import boundaries.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "pattern", "message"],
+            "properties": {
+              "id": { "type": "string" },
+              "pattern": { "type": "string", "description": "JavaScript regex." },
+              "flags": { "type": "string" },
+              "message": { "type": "string", "description": "Written for the agent: what to do instead, not just what is wrong." },
+              "paths": { "$ref": "#/definitions/prefixes", "description": "Only check files under these prefixes." },
+              "exclude": { "$ref": "#/definitions/prefixes" }
+            }
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "array",
+      "description": "Feature map: what exists, how to reach it, and the command that proves it works. `loop prove` runs the proofs and keeps their output as evidence.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "proof"],
+        "properties": {
+          "id": { "type": "string", "description": "Stable name, e.g. \"auth.login\"." },
+          "reach": { "type": "string", "description": "How a user or caller reaches it: route, command, endpoint." },
+          "proof": { "type": "string", "description": "Shell command that exits 0 only when the feature works." },
+          "cwd": { "type": "string", "description": "Directory relative to the repo root." },
+          "timeoutSec": { "type": "integer" }
+        }
+      }
     }
   },
   "definitions": {
+    "prefixes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Repo-relative path prefixes with forward slashes."
+    },
     "checkList": {
       "type": "array",
       "items": {
