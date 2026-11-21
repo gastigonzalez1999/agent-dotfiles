@@ -160,8 +160,19 @@ if ($HasNode) {
 Write-Host "Installing MCP servers..."
 if (Get-Command claude -ErrorAction SilentlyContinue) {
   if (Get-Command codegraph -ErrorAction SilentlyContinue) {
-    & claude mcp add-json --scope user codegraph '{"type":"stdio","command":"codegraph","args":["serve","--mcp"]}' 2>$null | Out-Null
-    Write-Host "  [ok] codegraph"
+    # Windows PowerShell 5.1 strips the inner quotes of a JSON argument to a
+    # native command, so add-json got invalid JSON; `mcp add` takes plain args.
+    # Native stderr under "Stop" throws on 5.1, hence the local Continue.
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & claude mcp get codegraph *> $null
+    if ($LASTEXITCODE -eq 0) {
+      Write-Host "  [skip] codegraph already configured"
+    } else {
+      & claude mcp add --scope user codegraph -- codegraph serve --mcp *> $null
+      if ($LASTEXITCODE -eq 0) { Write-Host "  [ok] codegraph" } else { Write-Host "  [warn] codegraph MCP add failed" }
+    }
+    $ErrorActionPreference = $prev
   } else {
     Write-Host "  [skip] codegraph - binary not on PATH"
   }
