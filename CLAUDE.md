@@ -73,18 +73,6 @@ When the user triggers a QA session, invoke the Skill tool with `skill: "qa"` be
 
 When the user triggers a domain model session, invoke the Skill tool with `skill: "domain-model"` before doing anything else.
 
-# auto-improve
-
-- **auto-improve** (`skills/auto-improve/SKILL.md`) — review recent work for repeated workflows worth packaging. Trigger: `/auto-improve` or when user asks to mine sessions for skill/automation candidates.
-
-When triggered, invoke the Skill tool with `skill: "auto-improve"` before proposing new assets.
-
-# browser-use
-
-- **browser-use** (`skills/browser-use/SKILL.md`) — Chrome DevTools MCP against the existing Chrome profile. Trigger: live UI verification, login-heavy sites, screenshot regressions.
-
-When browser proof is required, invoke `skill: "browser-use"` and follow it (mcporter + chrome-devtools, not isolated Playwright).
-
 # thermo-nuclear-code-quality-review
 
 - **thermo-nuclear-code-quality-review** (`skills/thermo-nuclear-code-quality-review/SKILL.md`) — harsh maintainability audit (code-judo, 1k-line rule, spaghetti). Trigger: `/thermo-nuclear-code-quality-review` or user asks for thermonuclear / deep code quality review.

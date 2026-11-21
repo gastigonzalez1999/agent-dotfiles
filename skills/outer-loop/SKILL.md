@@ -25,7 +25,7 @@ Only for work that is ambiguous, architectural, or that you are about to spend h
 
 - `grilling` — stress-test the approach before building it
 - `domain-modeling` — when the terminology is fuzzy or the model is contested
-- `write-a-prd` — when scope is unclear
+- `grilling` — when scope is unclear
 
 **Exit when:** you can state the goal as something checkable.
 
@@ -64,7 +64,7 @@ Verified is not the same as good. Green tests say nothing about whether the desi
 
 ## 7. Hand off
 
-- `session-handoff` when work continues in another session
+- `handoff` when work continues in another session
 - Say what you did, what you verified, and **what you did not verify**
 
 **Exit when:** someone else could pick this up from your summary alone.

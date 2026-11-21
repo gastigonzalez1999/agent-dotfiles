@@ -22,22 +22,7 @@
       "mcp__codegraph__codegraph_status"
     ]
   },
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "autoskills -y 2>/dev/null || true",
-            "statusMessage": "Auto-installing project skills...",
-            "async": true
-          }
-        ]
-      }
-    ]
-  },
   "enabledPlugins": {
-    "andrej-karpathy-skills@karpathy-skills": true,
     "claude-mem@thedotmack": true,
     "warp@claude-code-warp": true,
     "vercel@claude-plugins-official": true,
@@ -48,12 +33,6 @@
       "source": {
         "source": "github",
         "repo": "DietrichGebert/ponytail"
-      }
-    },
-    "karpathy-skills": {
-      "source": {
-        "source": "github",
-        "repo": "forrestchang/andrej-karpathy-skills"
       }
     },
     "thedotmack": {

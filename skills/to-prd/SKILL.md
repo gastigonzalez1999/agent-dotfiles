@@ -8,9 +8,9 @@ This skill takes the current conversation context and codebase understanding and
 
 The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
 
-Use `write-a-prd` instead when the requirements are still fuzzy and the PRD needs to
+Use `grilling` first when the requirements are still fuzzy and the PRD needs to
 be worked out with the user rather than synthesized from a conversation that already
-covered it. That one interviews and produces a document; this one skips the interview
+covered it. That one interviews; this one skips the interview
 and publishes to the tracker.
 
 ## Process

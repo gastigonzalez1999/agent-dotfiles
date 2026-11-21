@@ -7,7 +7,7 @@ alwaysApply: true
 
 Applies when reviewing or writing service-layer code in a layered/DDD backend
 (NestJS, Spring, or similar). These are the checks that catch real defects;
-general style rules live in `toolkit-code-change-discipline`.
+general code-change discipline lives in the global agent instructions.
 
 ## Boundaries
 

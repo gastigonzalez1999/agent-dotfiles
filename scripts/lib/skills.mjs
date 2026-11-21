@@ -61,15 +61,15 @@ export function readAllSkills(repo = REPO) {
 }
 
 /**
- * The third-party skills install-claude.sh clones, read from the script itself.
- * The README used to list these by hand and had drifted to naming seven skills
- * the installer does not install, several with invented attributions.
+ * The third-party skills every installer clones, from external-skills.txt — the
+ * one list install-claude.sh, install-claude.ps1 and install-codex.sh all read.
  */
 export function readExternalSkills(repo = REPO) {
-  const text = readFileSync(join(repo, 'install-claude.sh'), 'utf8');
   const out = [];
-  for (const m of text.matchAll(/^install_skill\s+"([^"]+)"\s+"([^"]+)"\s+"([^"]+)"/gm)) {
-    out.push({ repo: m[1], subfolder: m[2], name: m[3] });
+  for (const line of readFileSync(join(repo, 'external-skills.txt'), 'utf8').split('\n')) {
+    const [r, subfolder, name] = line.trim().split(/\s+/);
+    if (!name || r.startsWith('#')) continue;
+    out.push({ repo: r, subfolder, name });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }
