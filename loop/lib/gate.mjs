@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { runCheck } from './exec.mjs';
 import { fingerprint, firstError, lastRunPath, recordRun } from './history.mjs';
 import { registerProject } from './registry.mjs';
@@ -41,7 +42,7 @@ export function preflight(root) {
  * failures one rerun at a time.
  */
 export async function runGate(contract, tier, { quiet = false } = {}) {
-  const checks = contract.gates[tier] ?? [];
+  const checks = withGuard(contract, contract.gates[tier] ?? []);
   const root = contract.__root;
   const started = Date.now();
 
@@ -106,6 +107,19 @@ export async function runGate(contract, tier, { quiet = false } = {}) {
   }
 
   return run;
+}
+
+const LOOP_CLI = fileURLToPath(new URL('../loop.mjs', import.meta.url));
+
+/**
+ * A contract with a "guard" section gets the guard as the first check of every
+ * tier, so the Stop hook enforces it without anyone wiring it into gates by hand.
+ */
+function withGuard(contract, checks) {
+  // The pre-commit hook has already guarded the staged lines; guarding the whole
+  // working tree again would let an unrelated untracked file block the commit.
+  if (!contract.guard || process.env.LOOP_SKIP_GUARD || checks.some((c) => c.name === 'guard')) return checks;
+  return [{ name: 'guard', cmd: `"${process.execPath}" "${LOOP_CLI}" guard` }, ...checks];
 }
 
 /** Compact failure text for hook stderr — no colours, no file references the agent must open. */

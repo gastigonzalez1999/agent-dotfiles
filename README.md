@@ -7,13 +7,38 @@ Dotfiles and skills setup for AI coding agents. One script per agent — run on 
 Agents that verify their own work need to know *how* to verify it, and that answer is different in every repo. So the machinery is generic and lives here; the answer lives in each project as `.agent/loop.json`.
 
 ```bash
-loop init      # detect this project's checks, write .agent/loop.json
+loop init      # detect this project's checks, write .agent/loop.json, AGENTS.md, git hook
+loop init --shadow   # same, but touch no tracked file (work repos): git status stays empty
 loop fast      # seconds — after an edit
 loop test      # after a unit of work
 loop full      # before claiming the work is done
+loop guard     # deterministic rules on the lines this change adds
+loop prove     # run the feature map's proofs, keep the output as evidence
 loop doctor    # are the declared services up?
 loop report    # what the loop cost, and where it keeps failing
 ```
+
+### Deterministic before prose
+
+Rules an agent must follow are checks where possible, not paragraphs. The contract's `guard` section bans patterns in **added lines only** — so it is safe on day one in a legacy repo and every rule acts as a ratchet:
+
+```json
+"guard": {
+  "suppressions": true,
+  "comments": {},
+  "markdown": { "allow": ["README.md", "CHANGELOG.md", "AGENTS.md", "docs/"] },
+  "rules": [
+    { "id": "no-sleep-fix", "pattern": "\\b(setTimeout|time\\.sleep)\\(", "exclude": ["src/primitives"],
+      "message": "Timers are not a fix for a race. Fix the state flow, or use src/primitives/." },
+    { "id": "client-server", "pattern": "from ['\"].*server/", "paths": ["src/client/"],
+      "message": "client/ cannot import server/. Share types through src/shared/." }
+  ]
+}
+```
+
+`suppressions` is on by default; `comments` and `markdown` are opt-in. Messages are written for the agent: what to do instead. When the stack's own linter can express a rule (ESLint, ruff, golangci-lint, dependency-cruiser), put it there — the guard is for everything else. A contract with a `guard` runs it first in every gate tier; in CI use `loop guard --base origin/main`.
+
+The contract's `features` array is the feature map — what exists, how to reach it, and the command that proves it works. `loop prove` runs those and saves each output under `.agent/.loop-proof/`.
 
 Exit codes: **0** green · **1** a check failed · **2** configuration or environment problem.
 
@@ -31,7 +56,9 @@ Exit codes: **0** green · **1** a check failed · **2** configuration or enviro
 
 Projects without `.agent/loop.json` are unaffected — the hooks exit immediately.
 
-Cursor gets the same skills and a `toolkit-loop.mdc` rule, but **no enforcement** — Cursor has no hook system, so there it is advisory.
+Those bind Claude only. **For every other agent — and humans — the enforcement point is `git commit`**: `loop init` (or `loop git-hook` after a fresh clone) installs a pre-commit hook that runs the repo's own pre-commit, then `loop guard --staged`, then `loop fast`. It lives inside the git directory behind a *local* `core.hooksPath`, so nothing is tracked, and existing husky/lefthook/`.git/hooks` hooks keep running. `loop git-hook --uninstall` restores the original.
+
+Agents learn the loop exists from a managed section in the repo's `AGENTS.md`, which Cursor, Codex, Copilot, Windsurf, Zed, Aider and others read natively. Claude Code reads `AGENTS.md` only when the project has no `CLAUDE.md`/`CLAUDE.local.md`, so where one exists it gets an `@AGENTS.md` import.
 
 ### Learning
 

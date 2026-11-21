@@ -61,6 +61,26 @@ When you hit it, **stop and escalate**. Report:
 
 Thrashing past the budget wastes time and usually means the problem is a wrong assumption, not a missing fix.
 
+## The guard
+
+A `guard` check failure means a line you **added** breaks a rule the repo chose: a suppression (`@ts-ignore`, `# noqa`, `eslint-disable`), a banned API, an import across a boundary, a new explanatory comment, an unrequested `.md` file. The message says what to do instead. Do that. Rewording, moving the line or splitting the string to slip past the pattern is the same as suppressing it.
+
+If the rule is genuinely wrong for this line, stop and say so — the fix is a change to `.agent/loop.json` the user approves, not a workaround.
+
+## The ratchet
+
+When the user corrects a mistake you made, ask: could a check have caught it? If yes, propose the check — a lint rule in the stack's linter, or a `guard.rules` entry:
+
+```json
+{ "id": "no-raw-fetch", "pattern": "\\bfetch\\(", "paths": ["src/features/"], "message": "Use src/shared/http.ts — it handles auth and retries." }
+```
+
+A rule in prose is read sometimes; a check runs every time, for every agent. Propose, do not apply silently — it changes what every future commit must satisfy.
+
+## Proof, not claims
+
+If the contract declares `features`, run `loop prove <id>` for each one your change touches and cite the log in `.agent/.loop-proof/`. A reviewer should be able to check the evidence instead of re-reading the diff.
+
 ## Before you say "done"
 
 `loop full` must exit 0. Not "tests pass" — the whole gate.

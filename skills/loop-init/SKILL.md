@@ -86,20 +86,29 @@ Reasonable starting point:
 
 ### Trialling without touching the shared repo
 
-`loop init` writes `.agent/loop.json` and appends to `.gitignore`. On a repo you do not own yet, keep it invisible instead:
+`loop init` writes `.agent/loop.json`, appends to `.gitignore`, adds a loop section to `AGENTS.md` (and `@AGENTS.md` to an existing `CLAUDE.md`). On a repo you do not own yet, use shadow mode instead:
 
 ```bash
-echo ".agent/" >> .git/info/exclude   # per-clone, never committed
-git checkout -- .gitignore            # undo the init edit
+loop init --shadow
 ```
+
+It touches no tracked file. New files go into `.git/info/exclude`; if the repo tracks a `CLAUDE.md` or `AGENTS.md`, Claude gets the loop section through an untracked `CLAUDE.local.md` that imports `@AGENTS.md`. `git status` stays empty — check it.
 
 Nobody sees anything. Propose committing the contract later, once it has earned its place — at that point it is a shared asset, and the team should have a say in what the gates are.
 
 ### If someone asks what it does
 
-It runs commands the repo already declares and checks exit codes. It makes no network calls (the one `fetch` is `loop doctor` hitting health URLs your own contract declares), sends no telemetry, and the only git command it can run is `commit` — never `push`, and only with retro explicitly enabled.
+It runs commands the repo already declares and checks exit codes. It makes no network calls (the one `fetch` is `loop doctor` hitting health URLs your own contract declares) and sends no telemetry. Its git writes are: a *local* `core.hooksPath` for the pre-commit hook (`loop git-hook --uninstall` restores the original), and `commit` — only with retro explicitly enabled. Never `push`.
 
-## 7. Commit it
+## 7. The pre-commit hook and the guard
+
+`loop init` also installs a git pre-commit hook (`loop git-hook` to reinstall after cloning). It is the one enforcement point every agent hits — Cursor, Codex, Copilot and humans all end in `git commit`. It runs the repo's own pre-commit first (husky, lefthook, `.git/hooks`), then `loop guard --staged`, then `loop fast`. Hooks live in the git directory; nothing is tracked.
+
+New contracts get `"guard": { "suppressions": true }`: added lint/type suppressions fail. The guard judges **only added lines**, so it is safe on a repo full of legacy debt. Grow it from real mistakes (see inner-loop, "The ratchet") — do not pre-load it with rules nobody has needed yet. Where the stack's linter can express a rule, put it there instead; the guard is for what the linter cannot, or for repos whose lint config you cannot change.
+
+In CI on a PR: `loop guard --base origin/<target>`.
+
+## 8. Commit it
 
 `.agent/loop.json` is committed — it is how the loop travels to other machines and other agents. Run artifacts (`.agent/.loop-*`) are gitignored automatically.
 

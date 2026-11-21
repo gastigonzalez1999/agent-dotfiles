@@ -1,2 +1,5 @@
 .DS_Store
 **/.DS_Store
+
+# agent loop run artifacts (the contract itself is committed)
+.agent/.loop-*

@@ -14,14 +14,26 @@ import { preflight, runGate } from './lib/gate.mjs';
 import { installHooks } from './lib/install.mjs';
 import { doctor } from './lib/doctor.mjs';
 import { printReport } from './lib/report.mjs';
+import { GuardError, runGuard } from './lib/guard.mjs';
+import { prove } from './lib/prove.mjs';
+import { installGitHook, uninstallGitHook } from './lib/githook.mjs';
+import { writeInstructions } from './lib/instructions.mjs';
 import { MIN_DAYS, MIN_OCCURRENCES, MIN_REPOS_FOR_GLOBAL, apply, globalFindings, ledger, revert } from './lib/retro.mjs';
 
 const USAGE = `loop — portable agent verification loop
 
-  loop init [--force]     detect this project's checks and write .agent/loop.json
+  loop init [--force] [--shadow]
+                          detect this project's checks, write .agent/loop.json, AGENTS.md
+                          and the git pre-commit hook. --shadow: touch no tracked file and
+                          hide everything in .git/info/exclude (work repositories)
+  loop git-hook [--uninstall]
+                          (re)install the pre-commit hook: guard + fast for every agent
   loop fast               quick gate: run after every edit
   loop test               unit gate: run after a unit of work
   loop full               complete gate: must pass before declaring work done
+  loop guard [--staged | --base REF]
+                          check the lines this change adds against the contract's "guard" rules
+  loop prove [ID...]      run the feature map's proofs and keep their output as evidence
   loop doctor             check the services this project declares are up
   loop report             what the loop has cost and where it keeps failing
   loop install-hooks      merge the Claude Code enforcement hooks into settings.json
@@ -41,7 +53,7 @@ const [, , command, ...args] = process.argv;
 try {
   await main(command, args);
 } catch (err) {
-  if (err instanceof ContractError) fail(err.message);
+  if (err instanceof ContractError || err instanceof GuardError) fail(err.message);
   throw err;
 }
 
@@ -53,8 +65,25 @@ async function main(cmd, argv) {
 
   if (cmd === 'init') return init(argv);
   if (cmd === 'install-hooks') return installCommand(argv);
+  if (cmd === 'git-hook') return gitHookCommand(argv);
 
   if (cmd === 'retro') return retroCommand(argv);
+
+  if (cmd === 'prove') {
+    const root = findRoot();
+    if (!root) fail('Not inside a project. Run this from a repository.');
+    process.exit((await prove(loadContract(root), argv)) ? 0 : 1);
+  }
+
+  if (cmd === 'guard') {
+    const root = findRoot();
+    if (!root) fail('Not inside a project. Run this from a repository.');
+    const baseIdx = argv.indexOf('--base');
+    const base = baseIdx === -1 ? null : argv[baseIdx + 1];
+    if (baseIdx !== -1 && !base) fail('--base needs a git ref, e.g. --base origin/main.');
+    const clean = runGuard(loadContract(root), { staged: argv.includes('--staged'), base });
+    process.exit(clean ? 0 : 1);
+  }
 
   if (cmd === 'doctor' || cmd === 'report') {
     const root = findRoot();
@@ -87,10 +116,23 @@ function init(argv) {
     fail(`${target} already exists. Re-run with --force to regenerate it.`);
   }
 
+  const shadow = argv.includes('--shadow');
   const { contract, notes } = detectContract(root);
+  // Suppression checks on added lines cost nothing on day one and only ratchet.
+  contract.guard ??= { suppressions: true };
   mkdirSync(join(root, '.agent'), { recursive: true });
   writeFileSync(target, JSON.stringify(contract, null, 2) + '\n');
-  ignoreArtifacts(root);
+  if (!shadow) ignoreArtifacts(root);
+
+  if (existsSync(join(root, '.git'))) {
+    const written = writeInstructions(root, { shadow });
+    notes.push(...written.notes);
+    if (written.changed.length) notes.push(`Agent instructions: ${written.changed.join(', ')}`);
+    if (written.excluded.length) notes.push(`Hidden via .git/info/exclude: ${written.excluded.join(', ')}`);
+    notes.push(describeHook(installGitHook(root)));
+  } else {
+    notes.push('Not a git repository: skipped AGENTS.md and the pre-commit hook.');
+  }
 
   const total = TIERS.reduce((n, t) => n + contract.gates[t].length, 0);
   console.log(`\nWrote ${target}\n`);
@@ -107,6 +149,23 @@ function init(argv) {
       ? '\nDetection is a starting point, not an answer. Verify each command runs, then commit the file.\n'
       : '\nNothing detected — fill in gates by hand before this is useful.\n',
   );
+}
+
+function gitHookCommand(argv) {
+  const root = findRoot();
+  if (!root || !existsSync(join(root, '.git'))) fail('Not inside a git repository.');
+  if (argv.includes('--uninstall')) {
+    console.log(uninstallGitHook(root) ? 'Removed; the original hooks path is restored.' : 'No loop hook installed here.');
+    return;
+  }
+  console.log(describeHook(installGitHook(root)));
+}
+
+function describeHook({ dir, original, forwarded, husky }) {
+  const lines = [`pre-commit hook installed in ${dir} (local core.hooksPath; nothing tracked).`];
+  if (forwarded.length) lines.push(`    Forwarding to the repo's own hooks in ${original}: ${forwarded.join(', ')}`);
+  if (husky) lines.push('    husky resets core.hooksPath on install; re-run `loop git-hook` after `npm install` if commits stop being checked.');
+  return lines.join('\n');
 }
 
 function retroCommand(argv) {

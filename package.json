@@ -11,7 +11,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "sync:cursor": "node scripts/sync-to-cursor.mjs"
+    "sync:cursor": "node scripts/sync-to-cursor.mjs",
+    "test": "node --test loop/test/*.test.mjs"
   },
   "files": [
     "loop",

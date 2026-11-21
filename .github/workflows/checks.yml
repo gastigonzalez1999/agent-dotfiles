@@ -29,6 +29,32 @@ jobs:
       - name: shellcheck
         run: shellcheck -S warning install-claude.sh install-codex.sh statusline-command.sh
 
+  test:
+    name: Loop tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # The loop is used on Windows and macOS machines; git hooks, paths and
+        # shells differ enough that a Linux-only run proves little.
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      # Full history: `guard --base` diffs from the merge base, which a shallow
+      # clone does not have.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: npm test
+
+      - name: Guard the PR's added lines
+        if: github.event_name == 'pull_request'
+        run: node loop/loop.mjs guard --base "origin/${{ github.base_ref }}"
+
 # The cross-repo sync check deliberately does NOT run here. On a PR that adds or
 # edits a skill, cursor-dotfiles has not been regenerated yet — that is a
 # follow-up commit in the other repo — so the check would fail on exactly the
