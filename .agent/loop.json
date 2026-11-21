@@ -1,0 +1,13 @@
+{
+  "gates": {
+    "fast": [{ "name": "unit", "cmd": "node --test loop/test/*.test.mjs" }],
+    "full": [
+      { "name": "unit", "cmd": "node --test loop/test/*.test.mjs" },
+      { "name": "docs", "cmd": "node scripts/build-docs.mjs --check" }
+    ]
+  },
+  "guard": {
+    "suppressions": true,
+    "exclude": ["loop/lib/guard.mjs"]
+  }
+}
