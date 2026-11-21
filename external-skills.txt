@@ -1,0 +1,34 @@
+# Third-party skills every installer clones (install-claude.sh, install-claude.ps1,
+# install-codex.sh) and the README lists. One line each: <owner/repo> <subfolder> <name>
+# Claude installs them as <name>@ so they never collide with ours; Codex uses the
+# subfolder's basename.
+
+# Core / meta
+obra/superpowers                    skills/using-superpowers          using-superpowers
+obra/superpowers                    skills/using-git-worktrees        using-git-worktrees
+obra/superpowers                    skills/systematic-debugging       systematic-debugging
+vercel-labs/skills                  skills/find-skills                find-skills
+
+# Frontend
+anthropics/skills                   skills/frontend-design            frontend-design
+addyosmani/web-quality-skills       skills/accessibility              accessibility
+sickn33/antigravity-awesome-skills  skills/tailwind-patterns          tailwind-patterns
+vercel-labs/agent-skills            skills/react-best-practices       vercel-react-best-practices
+vercel-labs/agent-skills            skills/composition-patterns       vercel-composition-patterns
+
+# Backend
+kadajett/agent-nestjs-skills        skills/nestjs-best-practices      nestjs-best-practices
+sickn33/antigravity-awesome-skills  skills/nodejs-backend-patterns    nodejs-backend-patterns
+sickn33/antigravity-awesome-skills  skills/nodejs-best-practices      nodejs-best-practices
+sickn33/antigravity-awesome-skills  skills/typescript-advanced-types  typescript-advanced-types
+
+# Database
+prisma/skills                       prisma-cli                        prisma-cli
+prisma/skills                       prisma-client-api                 prisma-client-api
+prisma/skills                       prisma-database-setup             prisma-database-setup
+prisma/skills                       prisma-driver-adapter-implementation prisma-driver-adapter-implementation
+prisma/skills                       prisma-postgres                   prisma-postgres
+prisma/skills                       prisma-upgrade-v7                 prisma-upgrade-v7
+
+# DevOps
+sickn33/antigravity-awesome-skills  skills/docker-expert              docker-expert

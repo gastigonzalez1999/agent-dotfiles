@@ -54,100 +54,15 @@ install_skill() {
     fi
 }
 
-# Install a skill where the entire repo root is the skill (no subfolder)
-install_skill_repo_root() {
-    local repo="$1"
-    local skill_name="$2"
-    local target="$CODEX_SKILLS_DIR/$skill_name"
-
-    if [ -d "$target" ]; then
-        echo "  [skip] $skill_name already installed"
-        return
-    fi
-
-    echo "  Installing $skill_name from $repo (repo root)..."
-    local tmp; tmp=$(mktemp -d)
-    if git clone --depth=1 "https://github.com/$repo" "$tmp/$skill_name" -q 2>&1; then
-        cp -r "$tmp/$skill_name" "$target"
-        echo "  [ok] $skill_name"
-    else
-        echo "  [fail] $skill_name — clone failed"
-    fi
-    rm -rf "$tmp"
-}
-
 echo "Setting up Codex skills..."
 echo ""
 
-# --- Core / meta ---
-echo "Core / meta:"
-install_skill "obra/superpowers" "skills/using-superpowers"
-install_skill "obra/superpowers" "skills/using-git-worktrees"
-install_skill "obra/superpowers" "skills/systematic-debugging"
-install_skill "softaworks/agent-toolkit" "skills/session-handoff"
-install_skill "vercel-labs/skills" "skills/find-skills"
-
-# --- Frontend / Angular ---
-echo ""
-echo "Frontend / Angular:"
-install_skill "analogjs/angular-skills" "skills/angular-component"
-install_skill "analogjs/angular-skills" "skills/angular-di"
-install_skill "analogjs/angular-skills" "skills/angular-directives"
-install_skill "analogjs/angular-skills" "skills/angular-forms"
-install_skill "analogjs/angular-skills" "skills/angular-http"
-install_skill "analogjs/angular-skills" "skills/angular-routing"
-install_skill "analogjs/angular-skills" "skills/angular-signals"
-install_skill "analogjs/angular-skills" "skills/angular-ssr"
-install_skill "analogjs/angular-skills" "skills/angular-testing"
-install_skill "analogjs/angular-skills" "skills/angular-tooling"
-
-# --- Frontend quality ---
-echo ""
-echo "Frontend quality:"
-install_skill "anthropics/skills" "skills/frontend-design"
-install_skill "addyosmani/web-quality-skills" "skills/accessibility"
-install_skill "addyosmani/web-quality-skills" "skills/seo"
-install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-patterns"
-install_skill "vercel-labs/agent-skills" "skills/react-best-practices"
-install_skill "vercel-labs/agent-skills" "skills/composition-patterns"
-
-# --- Mobile / native ---
-echo ""
-echo "Mobile / native:"
-install_skill "vercel-labs/agent-skills" "skills/react-native-skills"
-install_skill "dpearson2699/swift-ios-skills" "skills/core-bluetooth"
-
-# --- Next.js ---
-echo ""
-echo "Next.js:"
-install_skill "vercel-labs/next-skills" "skills/next-best-practices"
-install_skill "vercel-labs/next-skills" "skills/next-cache-components"
-install_skill "vercel-labs/next-skills" "skills/next-upgrade"
-
-# --- Backend ---
-echo ""
-echo "Backend:"
-install_skill_repo_root "kadajett/agent-nestjs-skills" "nestjs-best-practices"
-install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-backend-patterns"
-install_skill "sickn33/antigravity-awesome-skills" "skills/typescript-advanced-types"
-install_skill "mindrally/skills" "typeorm"
-
-# --- Database ---
-echo ""
-echo "Database:"
-install_skill "prisma/skills" "prisma-cli"
-install_skill "prisma/skills" "prisma-client-api"
-install_skill "prisma/skills" "prisma-database-setup"
-install_skill "prisma/skills" "prisma-driver-adapter-implementation"
-install_skill "prisma/skills" "prisma-postgres"
-install_skill "prisma/skills" "prisma-upgrade-v7"
-install_skill "hoodini/ai-agents-skills" "skills/mongodb"
-
-# --- DevOps ---
-echo ""
-echo "DevOps:"
-install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert"
-install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices"
+# One list for every installer and the README: external-skills.txt. Read on fd 3
+# so the installer, which may prompt, cannot swallow the rest of the list.
+while read -r repo subfolder _name <&3; do
+    case "$repo" in ""|"#"*) continue ;; esac
+    install_skill "$repo" "$subfolder"
+done 3< "$SCRIPT_DIR/external-skills.txt"
 
 # --- Custom skills (from agent-dotfiles; always refresh from this repo) ---
 echo ""

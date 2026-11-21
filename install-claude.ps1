@@ -93,32 +93,12 @@ function Install-ExternalSkill {
 if (-not $SkipExternal) {
   if ($HasGit) {
     Write-Host "Installing external skills..."
-    # Kept in step with the same list in install-claude.sh.
-    $external = @(
-      @("obra/superpowers",                  "skills/using-superpowers",        "using-superpowers"),
-      @("obra/superpowers",                  "skills/using-git-worktrees",      "using-git-worktrees"),
-      @("obra/superpowers",                  "skills/systematic-debugging",     "systematic-debugging"),
-      @("softaworks/agent-toolkit",          "skills/session-handoff",          "session-handoff"),
-      @("vercel-labs/skills",                "skills/find-skills",              "find-skills"),
-      @("anthropics/skills",                 "frontend-design",                 "frontend-design"),
-      @("addyosmani/web-quality-skills",     "skills/accessibility",            "accessibility"),
-      @("addyosmani/web-quality-skills",     "skills/seo",                      "seo"),
-      @("vercel-labs/next-skills",           "next-best-practices",             "next-best-practices"),
-      @("vercel-labs/next-skills",           "next-cache-components",           "next-cache-components"),
-      @("vercel-labs/next-skills",           "next-upgrade",                    "next-upgrade"),
-      @("kadajett/agent-nestjs-skills",      "nestjs-best-practices",           "nestjs-best-practices"),
-      @("mindrally/skills",                  "typeorm",                         "typeorm"),
-      @("prisma/skills",                     "prisma-cli",                      "prisma-cli"),
-      @("prisma/skills",                     "prisma-client-api",               "prisma-client-api"),
-      @("prisma/skills",                     "prisma-database-setup",           "prisma-database-setup"),
-      @("prisma/skills",                     "prisma-postgres",                 "prisma-postgres"),
-      @("prisma/skills",                     "prisma-upgrade-v7",               "prisma-upgrade-v7"),
-      @("hoodini/ai-agents-skills",          "skills/mongodb",                  "mongodb"),
-      @("sickn33/antigravity-awesome-skills","skills/docker-expert",            "docker-expert"),
-      @("sickn33/antigravity-awesome-skills","skills/typescript-advanced-types", "typescript-advanced-types"),
-      @("sickn33/antigravity-awesome-skills","skills/nodejs-best-practices",    "nodejs-best-practices")
-    )
-    foreach ($e in $external) { Install-ExternalSkill -Repo $e[0] -Subfolder $e[1] -Name $e[2] }
+    # One list for every installer and the README: external-skills.txt.
+    Get-Content -LiteralPath (Join-Path $ScriptDir "external-skills.txt") | ForEach-Object {
+      $f = -split $_
+      if ($f.Count -lt 3 -or $f[0].StartsWith("#")) { return }
+      Install-ExternalSkill -Repo $f[0] -Subfolder $f[1] -Name $f[2]
+    }
   } else {
     Write-Host "  [skip] external skills - git not found"
   }

@@ -102,100 +102,12 @@ install_skill() {
     rm -rf "$tmp"
 }
 
-# Install a skill whose SKILL.md sits at the repo root, so there is no subfolder to
-# copy out. install_skill cannot express this: it would need "." as the subfolder, and
-# `cp -r "$tmp/." "$target"` requires $target to already exist.
-install_skill_repo_root() {
-    [ "$SKIP_EXTERNAL" -eq 1 ] && return 0
-
-    local repo="$1"
-    local skill_name="$2"
-    local target="$SKILLS_DIR/${skill_name}@"
-
-    if [ -d "$target" ]; then
-        echo "  [skip] $skill_name already installed"
-        return
-    fi
-    # Same guard as install_skill: something may already provide this under its plain
-    # name, and installing both loads one skill twice under two names.
-    if [ -e "$SKILLS_DIR/$skill_name" ]; then
-        echo "  [skip] $skill_name — already provided under its plain name"
-        return
-    fi
-
-    echo "  Installing $skill_name from $repo (repo root)..."
-    # Clone straight to the destination; there is nothing to extract from it.
-    if git clone --depth=1 "https://github.com/$repo" "$target" -q 2>/dev/null; then
-        # Drop the git metadata so the installed skill is a plain directory. `find`
-        # rather than a recursive delete, to keep the blast radius to one directory.
-        if [ -d "$target/.git" ]; then
-            find "$target/.git" -mindepth 1 -delete 2>/dev/null
-            rmdir "$target/.git" 2>/dev/null
-        fi
-        echo "  [ok] $skill_name"
-    else
-        echo "  [fail] $skill_name — clone failed"
-    fi
-}
-
-# --- Core / meta ---
-install_skill "obra/superpowers" "skills/using-superpowers" "using-superpowers"
-install_skill "obra/superpowers" "skills/using-git-worktrees" "using-git-worktrees"
-install_skill "obra/superpowers" "skills/systematic-debugging" "systematic-debugging"
-install_skill "softaworks/agent-toolkit" "skills/session-handoff" "session-handoff"
-install_skill "vercel-labs/skills" "skills/find-skills" "find-skills"
-
-# --- Frontend / Angular ---
-install_skill "analogjs/angular-skills" "skills/angular-component" "angular-component"
-install_skill "analogjs/angular-skills" "skills/angular-di" "angular-di"
-install_skill "analogjs/angular-skills" "skills/angular-directives" "angular-directives"
-install_skill "analogjs/angular-skills" "skills/angular-forms" "angular-forms"
-install_skill "analogjs/angular-skills" "skills/angular-http" "angular-http"
-install_skill "analogjs/angular-skills" "skills/angular-routing" "angular-routing"
-install_skill "analogjs/angular-skills" "skills/angular-signals" "angular-signals"
-install_skill "analogjs/angular-skills" "skills/angular-ssr" "angular-ssr"
-install_skill "analogjs/angular-skills" "skills/angular-testing" "angular-testing"
-install_skill "analogjs/angular-skills" "skills/angular-tooling" "angular-tooling"
-
-# --- Frontend quality ---
-install_skill "anthropics/skills" "skills/frontend-design" "frontend-design"
-install_skill "addyosmani/web-quality-skills" "skills/accessibility" "accessibility"
-install_skill "addyosmani/web-quality-skills" "skills/seo" "seo"
-install_skill "sickn33/antigravity-awesome-skills" "skills/tailwind-patterns" "tailwind-patterns"
-install_skill "vercel-labs/agent-skills" "skills/react-best-practices" "vercel-react-best-practices"
-install_skill "vercel-labs/agent-skills" "skills/composition-patterns" "vercel-composition-patterns"
-
-# --- Mobile / native ---
-install_skill "vercel-labs/agent-skills" "skills/react-native-skills" "vercel-react-native-skills"
-install_skill "dpearson2699/swift-ios-skills" "skills/core-bluetooth" "core-bluetooth"
-
-# --- Next.js ---
-install_skill "vercel-labs/next-skills" "skills/next-best-practices" "next-best-practices"
-install_skill "vercel-labs/next-skills" "skills/next-cache-components" "next-cache-components"
-install_skill "vercel-labs/next-skills" "skills/next-upgrade" "next-upgrade"
-
-# --- Backend ---
-install_skill "kadajett/agent-nestjs-skills" "nestjs-best-practices" "nestjs-best-practices"
-install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-backend-patterns" "nodejs-backend-patterns"
-install_skill "sickn33/antigravity-awesome-skills" "skills/typescript-advanced-types" "typescript-advanced-types"
-install_skill "mindrally/skills" "typeorm" "typeorm"
-
-# --- Database ---
-install_skill "prisma/skills" "prisma-cli" "prisma-cli"
-install_skill "prisma/skills" "prisma-client-api" "prisma-client-api"
-install_skill "prisma/skills" "prisma-database-setup" "prisma-database-setup"
-install_skill "prisma/skills" "prisma-driver-adapter-implementation" "prisma-driver-adapter-implementation"
-install_skill "prisma/skills" "prisma-postgres" "prisma-postgres"
-install_skill "prisma/skills" "prisma-upgrade-v7" "prisma-upgrade-v7"
-install_skill "hoodini/ai-agents-skills" "skills/mongodb" "mongodb"
-
-# --- DevOps ---
-install_skill "sickn33/antigravity-awesome-skills" "skills/docker-expert" "docker-expert"
-install_skill "sickn33/antigravity-awesome-skills" "skills/nodejs-best-practices" "nodejs-best-practices"
-
-# --- Code review ---
-# Whole-repo skill (SKILL.md at the root), so it needs the repo-root installer.
-install_skill_repo_root "awesome-skills/code-review-skill" "code-review-skill"
+# One list for every installer and the README: external-skills.txt.
+# Read on fd 3 so git, which may prompt, cannot swallow the rest of the list.
+while read -r repo subfolder name <&3; do
+    case "$repo" in ""|"#"*) continue ;; esac
+    install_skill "$repo" "$subfolder" "$name"
+done 3< "$SCRIPT_DIR/external-skills.txt"
 
 # --- skills.sh CLI packages ---
 # 25 skills reached this machine through `npx skills add` and lived only in
@@ -220,6 +132,9 @@ install_skill_repo_root "awesome-skills/code-review-skill" "code-review-skill"
 # Dropped because upstream removed them entirely — adopt into skills/ with MIT
 # attribution if you want to keep one:
 #   caveman, to-prd, write-a-prd, write-a-skill, zoom-out
+# Dropped as unused (Angular, React Native, Swift, TypeORM, MongoDB, SEO) and as
+# duplicates (session-handoff -> skills/handoff, code-review-skill -> /code-review;
+# next-* moved into the vercel plugin).
 install_cli_skills() {
     [ "$SKIP_EXTERNAL" -eq 1 ] && return 0
     command -v npx >/dev/null 2>&1 || { echo "  [warn] npx not found — skills.sh packages skipped"; return 0; }

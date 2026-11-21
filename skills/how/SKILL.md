@@ -47,9 +47,8 @@ The right decomposition depends on the question — use your judgment. For narro
 
 Spawn all explorers in a single message:
 
-- `subagent_type`: `generalPurpose`
-- `model`: `gpt-5.4`
-- `readonly`: `true`
+- a general-purpose, read-only subagent (Cursor: `generalPurpose`, `readonly: true`; Claude Code: `Explore`)
+- the harness default model — exploration does not need the strongest one
 
 Each explorer gets the same base prompt from `references/explorer-prompt.md`, plus a specific exploration angle telling it which slice to focus on. Each explorer should:
 
@@ -67,9 +66,8 @@ Then proceed to Step 3.
 
 Spawn a single Task subagent that explores and explains in one pass:
 
-- `subagent_type`: `generalPurpose`
-- `model`: `claude-opus-4.6`
-- `readonly`: `true`
+- a general-purpose, read-only subagent
+- the strongest model available — this agent writes the explanation the user reads
 
 This agent does its own exploration (Glob, Grep, Read) and writes the explanation directly. Read `references/explainer-prompt.md` for the communication style and output format — the agent follows the same structure, it just doesn't have explorer findings as input.
 
@@ -79,9 +77,8 @@ Proceed to Step 4.
 
 Once all explorers have returned, spawn a single Task subagent to synthesize their findings into one coherent explanation:
 
-- `subagent_type`: `generalPurpose`
-- `model`: `claude-opus-4.6`
-- `readonly`: `true`
+- a general-purpose, read-only subagent
+- the strongest model available — this agent writes the explanation the user reads
 
 The explainer gets all explorers' findings and writes the human-facing explanation (see output format below). Read `references/explainer-prompt.md` for the full prompt template. The explainer reconciles overlapping findings, resolves contradictions, and weaves the separate slices into a unified picture.
 
@@ -115,17 +112,11 @@ Run the full explain flow above (Steps 1-4). You need to understand the architec
 
 After the explanation is complete, spawn architectural critics. Launch all in a single message:
 
-| Subagent | Model |
-|----------|-------|
-| Critic A | `claude-opus-4.6` |
-| Critic B | `composer-2` |
-| Critic C | `gpt-5.4` |
+Three critics. Where the harness offers models from different families (Cursor does), give each critic a different one: disagreement between families is the point. Otherwise use the strongest model three times with different focus areas.
 
 For each critic:
 
-- `subagent_type`: `generalPurpose`
-- `model`: the model from the table. These are starting suggestions — escalate to a higher reasoning tier of the same model family when the architecture warrants deeper analysis.
-- `readonly`: `true`
+- a general-purpose, read-only subagent
 
 Read `references/critic-prompt.md` for the prompt template. Each critic gets:
 

@@ -142,5 +142,5 @@ user should know before committing, restate it in one line under the message.
 ## Related
 
 - `inner-loop` — get the checks green first; this skill assumes they are
-- `pr-review` — self-review the diff before it becomes a commit
+- `/code-review` — self-review the diff before it becomes a commit
 - `ship-it` — when the user wants the whole path: commit, push, PR, merge
