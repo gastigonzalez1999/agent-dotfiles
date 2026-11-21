@@ -108,9 +108,16 @@ New contracts get `"guard": { "suppressions": true }`: added lint/type suppressi
 
 In CI on a PR: `loop guard --base origin/<target>`.
 
-## 8. Commit it
+## 8. Report and hand off
 
-`.agent/loop.json` is committed — it is how the loop travels to other machines and other agents. Run artifacts (`.agent/.loop-*`) are gitignored automatically.
+Before reporting, confirm:
+
+- `git config --get core.hooksPath` points at the `loop-hooks` directory — the hook is installed.
+- Shadow mode: `git status` is empty.
+
+Then report: the final `.agent/loop.json`, and the result of `loop full` — each red check and why it is red (pre-existing debt, missing service, wrong command).
+
+Do not commit. The user reviews the gates first. Once they approve, `.agent/loop.json` is committed (never in shadow mode) — it is how the loop travels to other machines and other agents. Run artifacts (`.agent/.loop-*`) are gitignored automatically. Each new clone still needs `loop git-hook` once: hooks do not travel with git.
 
 ## Schema
 
